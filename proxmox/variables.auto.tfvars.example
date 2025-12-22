@@ -1,0 +1,9 @@
+virtual_environment_endpoint    = "https://ip-of-host:port"
+virtual_environment_api_token   = "user@pam!tag=-SECRET-VALUE"
+virtual_environment_is_insecure = true
+
+node_name          = "name-of-node"
+template_datastore = "local-datastore-name"
+rootfs_datastore   = "lvm-datatore-name"
+network_bridge     = "vmbr0"
+container_password = "temp-password"

@@ -23,7 +23,7 @@ resource "proxmox_virtual_environment_download_file" "debian_lxc" {
 }
 
 
-###### Create Test LXC container ######
+###### Create LXC containers ######
 resource "proxmox_virtual_environment_container" "svc" {
   for_each  = local.containers
   node_name = local.defaults.node

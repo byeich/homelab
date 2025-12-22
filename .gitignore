@@ -1,4 +1,10 @@
+###### Tofu ######
 .terraform/
 *.tfvars
 *.tfstate
 *.tfstate.backup
+
+###### Ansible ######
+*.vault
+vault.yml
+inventory.ini

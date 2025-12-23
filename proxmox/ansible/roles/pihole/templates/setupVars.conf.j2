@@ -1,0 +1,11 @@
+PIHOLE_INTERFACE={{ pihole_interface }}
+IPV4_ADDRESS={{ pihole_ipv4_address_cidr }}
+IPV4_GATEWAY={{ pihole_ipv4_gateway }}
+
+PIHOLE_DNS_1={{ pihole_dns_1 }}
+PIHOLE_DNS_2={{ pihole_dns_2 }}
+
+QUERY_LOGGING={{ 'true' if pihole_query_logging else 'false' }}
+INSTALL_WEB_SERVER={{ 'true' if pihole_install_web else 'false' }}
+INSTALL_WEB_INTERFACE={{ 'true' if pihole_install_web else 'false' }}
+INSTALL_DNSMASQ={{ 'true' if pihole_install_dnsmasq else 'false' }}

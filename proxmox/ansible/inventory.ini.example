@@ -1,0 +1,2 @@
+[pihole]
+pihole1 ansible_host=ip-of-pihole-host ansible_user=root

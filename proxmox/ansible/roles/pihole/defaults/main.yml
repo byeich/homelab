@@ -1,0 +1,18 @@
+---
+###### Basic settings ######
+pihole_web_password: "changeme"
+pihole_interface: "eth0"
+
+###### IP Configuration ######
+pihole_ipv4_address_cidr: "10.0.0.53/24"
+pihole_ipv4_gateway: "10.0.0.1"
+
+###### DNS ######
+pihole_dns_1: "1.1.1.1"
+pihole_dns_2: "8.8.8.8"
+
+###### Feature flags ######
+pihole_query_logging: true
+pihole_install_web: true
+pihole_install_dnsmasq: true
+pihole_timezone: "America/New_York"

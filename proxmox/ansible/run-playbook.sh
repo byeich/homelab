@@ -29,4 +29,4 @@ echo "▶ Running Ansible playbook: ${PLAYBOOK}"
 echo
 
 
-# ansible-playbook "${PLAYBOOK}" "$@"
+ansible-playbook "${PLAYBOOK}" "$@"

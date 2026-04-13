@@ -1,0 +1,37 @@
+- name: Check if k3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_bin
+
+- name: Install k3s server (init node)
+  ansible.builtin.shell: |
+    curl -sfL https://get.k3s.io | K3S_TOKEN={{ k3s_token }} sh -s - server --cluster-init
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  when:
+    - not k3s_bin.stat.exists
+    - inventory_hostname == groups['k3s-control'][0]
+  notify: restart k3s
+
+- name: Wait for k3s token file to exist (init node)
+  ansible.builtin.wait_for:
+    path: /var/lib/rancher/k3s/server/node-token
+    timeout: 120
+  when: inventory_hostname == groups['k3s-control'][0]
+
+- name: Install k3s server (join additional control nodes)
+  ansible.builtin.shell: |
+    curl -sfL https://get.k3s.io | K3S_TOKEN={{ k3s_token }} sh -s - server \
+      --server https://{{ hostvars[groups['k3s-control'][0]]['ansible_host'] }}:{{ k3s_api_port }}
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  when:
+    - not k3s_bin.stat.exists
+    - inventory_hostname != groups['k3s-control'][0]
+  notify: restart k3s
+
+- name: Ensure k3s service is running and enabled
+  ansible.builtin.service:
+    name: k3s
+    state: started
+    enabled: true

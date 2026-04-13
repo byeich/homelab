@@ -1,0 +1,18 @@
+- name: k3s prerequisites
+  hosts: k3s-control:k3s-workers
+  become: true
+  roles:
+    - k3s_common
+
+- name: k3s control plane
+  hosts: k3s-control
+  become: true
+  serial: 1  # init first node, then join the rest one at a time
+  roles:
+    - k3s_control
+
+- name: k3s workers
+  hosts: k3s-workers
+  become: true
+  roles:
+    - k3s_worker

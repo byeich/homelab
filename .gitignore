@@ -8,6 +8,7 @@
 *.vault
 vault.yml
 inventory.ini
+.vault_pass
 
 ###### Other ######
 .vscode/

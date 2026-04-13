@@ -1,0 +1,5 @@
+---
+# Must match values set on control plane nodes
+k3s_version: ""
+k3s_token: "changeme"
+k3s_api_port: 6443

@@ -30,7 +30,6 @@ locals {
     }
 }
 
-
 ###### Download LXC Template ######
 resource "proxmox_virtual_environment_download_file" "debian_lxc" {
     node_name = var.node_name
@@ -48,7 +47,6 @@ resource "proxmox_virtual_environment_download_file" "debian_lxc" {
 
 #     url = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.4.0-amd64-netinst.iso"
 # }
-
 
 ###### Create LXC containers ######
 resource "proxmox_virtual_environment_container" "svc" {
@@ -159,7 +157,6 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
   # VM settings
   started = true
 }
-
 
 ###### Ansible Inventory ######
 locals {

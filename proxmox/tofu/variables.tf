@@ -1,3 +1,4 @@
+########## Containers ##########
 ###### Connection to Proxmox ######
 variable "virtual_environment_endpoint" {
   type        = string
@@ -44,5 +45,54 @@ variable "network_bridge" {
 variable "container_password" {
   type        = string
   description = "Password for test container"
+  sensitive   = true
+}
+
+########## VMs ##########
+variable "vm_virtual_environment_endpoint" {
+  type        = string
+  description = "Proxmox API endpoint (https://ip-of-host:port/)"
+}
+
+variable "vm_virtual_environment_api_token" {
+  type        = string
+  description = "Proxmox API token (user@realm!token=secret)"
+  sensitive   = true
+}
+
+variable "vm_virtual_environment_is_insecure" {
+  type        = bool
+  description = "Allow self-signed certs"
+  default     = true
+}
+
+
+###### Proxmox Settings/Configuration ######
+variable "vm_node_name" {
+    type = string
+    description = "Target Proxmox Node"
+}
+
+variable "vm_template_datastore" {
+  type        = string
+  description = "Datastore for VM templates/ISOs"
+  default     = "local"
+}
+
+variable "vm_rootfs_datastore" {
+  type        = string
+  description = "Datastore for vm rootfs"
+  default     = "local-lvm"
+}
+
+variable "vm_network_bridge" {
+  type        = string
+  description = "Network bridge for vms"
+  default     = "vmbr0"
+}
+
+variable "vm_password" {
+  type        = string
+  description = "Password for test vm"
   sensitive   = true
 }

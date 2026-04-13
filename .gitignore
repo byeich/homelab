@@ -11,3 +11,4 @@ inventory.ini
 
 ###### Other ######
 .vscode/
+.DS_Store

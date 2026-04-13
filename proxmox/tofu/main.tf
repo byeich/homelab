@@ -10,6 +10,7 @@ locals {
         # jellyfin = { vm_id = 301, memory = 1024, cores = 1, ip = "10.0.0.51/24" }
         # vault    = { vm_id = 302, memory = 1024, cores = 1, ip = "10.0.0.52/24" }
         pihole   = { vm_id = 303, memory = 512, cores = 1 , ip = "10.0.0.53/24"}
+        # pihole   = { vm_id = 304, memory = 512, cores = 1 , ip = "10.0.0.54/24"}
     }
 }
 

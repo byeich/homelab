@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-server
+  namespace: immich
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-server
+  template:
+    metadata:
+      labels:
+        app: immich-server
+    spec:
+      containers:
+        - name: immich-server
+          image: ghcr.io/immich-app/immich-server:v2.6.3
+          ports:
+            - containerPort: 2283
+          envFrom:
+            - configMapRef:
+                name: immich-config
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-secret
+                  key: db-password
+          volumeMounts:
+            - name: photos
+              mountPath: /data
+            - name: localtime
+              mountPath: /etc/localtime
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: 2283
+            initialDelaySeconds: 60
+            periodSeconds: 30
+      volumes:
+        - name: photos
+          persistentVolumeClaim:
+            claimName: immich-photos
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-server
+  namespace: immich
+spec:
+  selector:
+    app: immich-server
+  ports:
+    - port: 2283
+      targetPort: 2283

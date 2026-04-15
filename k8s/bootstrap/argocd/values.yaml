@@ -1,0 +1,10 @@
+global:
+  domain: argocd.bkylab.net
+
+server:
+  ingress:
+    enabled: false
+
+configs:
+  params:
+    server.insecure: true  # TLS terminated at ingress/tunnel level

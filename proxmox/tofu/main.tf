@@ -10,10 +10,7 @@ locals {
     }
 
     containers = {
-        # jellyfin = { vm_id = 301, memory = 1024, cores = 1, ip = "10.0.0.51/24" }
-        # vault    = { vm_id = 302, memory = 1024, cores = 1, ip = "10.0.0.52/24" }
         pihole   = { vm_id = 303, memory = 512, cores = 1 , ip = "10.0.0.53/24"}
-        # pihole   = { vm_id = 304, memory = 512, cores = 1 , ip = "10.0.0.54/24"}
     }
 
     # K3s VMs    
@@ -38,15 +35,6 @@ resource "proxmox_virtual_environment_download_file" "debian_lxc" {
 
     url = "http://download.proxmox.com/images/system/debian-12-standard_12.2-1_amd64.tar.zst"
 }
-
-###### Download VM iso ######
-# resource "proxmox_virtual_envrionment_download_file" "debian_iso" {
-#     node_name = var.vm_node_name
-#     content_type = "iso"
-#     datastore_id = var.vm_template_datastore
-
-#     url = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.4.0-amd64-netinst.iso"
-# }
 
 ###### Create LXC containers ######
 resource "proxmox_virtual_environment_container" "svc" {
@@ -85,8 +73,8 @@ resource "proxmox_virtual_environment_container" "svc" {
   memory { dedicated = each.value.memory }
   cpu { cores = each.value.cores }
 
-  unprivileged = true  #default false
-  started      = true  #default
+  unprivileged = true
+  started      = true
 }
 
 ###### Create K3s VMs ######
@@ -105,11 +93,10 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
   }
 
   clone {
-    vm_id = 9000  # Your template ID
+    vm_id = 9000  #id of debian template in proxmox
     full  = false
   }
 
-  # Essential for cloud-init
   initialization {
     ip_config {
       ipv4 {
@@ -119,7 +106,7 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
     }
     
     dns {
-      servers = ["10.0.0.53"]  # Your PiHole
+      servers = ["10.0.0.53"]  # pihole container ip
     }
 
     user_account {
@@ -128,16 +115,14 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
     }
   }
 
-  # Network interface
   network_device {
     bridge = local.defaults.vm_bridge
     model  = "virtio"
   }
 
-  # Disk configuration
   disk {
     datastore_id = local.defaults.vm_rootds
-    interface    = "virtio0"
+    interface    = "scsi0"
     iothread     = true
     discard      = "on"
     size         = 32
@@ -157,7 +142,6 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
     }
   }
 
-  # Memory & CPU
   memory {
     dedicated = each.value.memory
   }
@@ -167,7 +151,6 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
     type  = "host"
   }
 
-  # VM settings
   started = true
 }
 

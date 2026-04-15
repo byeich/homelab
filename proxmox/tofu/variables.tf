@@ -1,5 +1,5 @@
-########## Containers ##########
-###### Connection to Proxmox ######
+################################ Containers ################################
+######## Connection to Proxmox ########
 variable "virtual_environment_endpoint" {
   type        = string
   description = "Proxmox API endpoint (https://ip-of-host:port/)"
@@ -17,8 +17,7 @@ variable "virtual_environment_is_insecure" {
   default     = true
 }
 
-
-###### Proxmox Settings/Configuration ######
+######## Proxmox Settings/Configuration ########
 variable "node_name" {
     type = string
     description = "Target Proxmox Node"
@@ -48,7 +47,8 @@ variable "container_password" {
   sensitive   = true
 }
 
-########## VMs ##########
+################################ VMs ################################
+######## Connection to Proxmox ########
 variable "vm_virtual_environment_endpoint" {
   type        = string
   description = "Proxmox API endpoint (https://ip-of-host:port/)"
@@ -66,8 +66,7 @@ variable "vm_virtual_environment_is_insecure" {
   default     = true
 }
 
-
-###### Proxmox Settings/Configuration ######
+######## Proxmox Settings/Configuration ########
 variable "vm_node_name" {
     type = string
     description = "Target Proxmox Node"

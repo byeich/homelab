@@ -1,0 +1,9 @@
+- name: restart pihole-ftl
+  ansible.builtin.service:
+    name: pihole-FTL
+    state: restarted
+
+- name: restart lighttpd
+  ansible.builtin.service:
+    name: lighttpd
+    state: restarted

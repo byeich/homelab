@@ -1,0 +1,4 @@
+- name: restart k3s
+  ansible.builtin.service:
+    name: k3s
+    state: restarted

@@ -1,0 +1,12 @@
+defaultSettings:
+  defaultReplicaCount: 2
+  defaultDataPath: /var/lib/longhorn
+  backupTarget: "nfs://10.0.0.9:/mnt/bigtank/backups/longhorn"
+  storageMinimalAvailablePercentage: 15
+  storageOverProvisioningPercentage: 100
+
+persistence:
+  defaultClassReplicaCount: 2
+
+ingress:
+  enabled: false

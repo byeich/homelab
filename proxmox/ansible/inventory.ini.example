@@ -1,2 +1,12 @@
 [pihole]
 pihole1 ansible_host=ip-of-pihole-host ansible_user=root
+
+[k3s-control]
+k3s-control-1 ansible_host=ip-of-k3s-host ansible_user=sample_user
+k3s-control-2 ansible_host=ip-of-k3s-host ansible_user=sample_user
+k3s-control-3 ansible_host=ip-of-k3s-host ansible_user=sample_user
+
+[k3s-workers]
+k3s-worker-1 ansible_host=ip-of-k3s-host ansible_user=sample_user
+k3s-worker-2 ansible_host=ip-of-k3s-host ansible_user=sample_user
+k3s-worker-3 ansible_host=ip-of-k3s-host ansible_user=sample_user

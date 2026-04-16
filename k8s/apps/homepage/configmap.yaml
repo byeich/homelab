@@ -47,6 +47,7 @@ data:
             icon: immich.png
             namespace: immich
             app: immich-server
+            podSelector: app=immich-server
         - Jellyfin:
             href: http://10.0.0.9:30013
             description: Media server
@@ -69,6 +70,7 @@ data:
             icon: vaultwarden.png
             namespace: vaultwarden
             app: vaultwarden
+            podSelector: app=vaultwarden
         - Pi-hole:
             href: https://10.0.0.53/admin/
             description: DNS & ad blocking

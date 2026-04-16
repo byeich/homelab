@@ -18,6 +18,15 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
+  # NOTE: On a fresh cluster, Longhorn must be installed via helm FIRST (scripts/bootstrap.sh
+  # does this). The pre-upgrade hook requires a ServiceAccount that doesn't exist until the
+  # chart installs it — ArgoCD sync fails on initial apply. After the helm install, ArgoCD
+  # adopts the release and auto-sync works fine from that point on.
+  #
+  # To suspend auto-sync (if needed): kubectl patch application longhorn -n argocd \
+  #   --type merge -p '{"spec":{"syncPolicy":{"automated":null}}}'
+  # To re-enable: kubectl patch application longhorn -n argocd \
+  #   --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
   syncPolicy:
     automated:
       prune: true

@@ -1,0 +1,139 @@
+---
+# Bootstrap playbook — run AFTER k3s.yml has finished and the cluster is healthy.
+# Installs ArgoCD, Longhorn (via helm to sidestep pre-upgrade hook chicken-and-egg),
+# applies SealedSecret manifests, then kicks off the App-of-Apps so ArgoCD takes over.
+#
+# Usage:
+#   ansible-playbook -i inventory.ini playbooks/k3s_bootstrap.yml
+#
+# Full rebuild flow:
+#   tofu apply                        # provision VMs
+#   ansible-playbook k3s.yml          # install k3s (common + control + worker)
+#   ansible-playbook k3s_bootstrap.yml
+#   git push origin k3s-time          # ArgoCD syncs all apps
+
+- name: Bootstrap k3s cluster
+  hosts: k3s-control[0]   # run once from the first control node
+  become: true
+  vars:
+    argocd_version: "7.x"
+    longhorn_version: "1.7.x"
+    repo_url: "https://github.com/byeich/homelab"
+    target_revision: "k3s-time"
+
+  tasks:
+    # ── Helm repos ────────────────────────────────────────────────────────────
+    - name: Add argo helm repo
+      ansible.builtin.command: helm repo add argo https://argoproj.github.io/argo-helm
+      changed_when: false
+
+    - name: Add longhorn helm repo
+      ansible.builtin.command: helm repo add longhorn https://charts.longhorn.io
+      changed_when: false
+
+    - name: Add sealed-secrets helm repo
+      ansible.builtin.command: helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+      changed_when: false
+
+    - name: Update helm repos
+      ansible.builtin.command: helm repo update
+      changed_when: false
+
+    # ── ArgoCD ────────────────────────────────────────────────────────────────
+    - name: Create argocd namespace
+      ansible.builtin.command: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Install ArgoCD via helm
+      ansible.builtin.command: >
+        helm upgrade --install argocd argo/argo-cd
+        --namespace argocd
+        --version "{{ argocd_version }}"
+        --values /tmp/argocd-values.yaml
+        --wait
+      changed_when: false
+
+    - name: Copy ArgoCD values to control node
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../../k8s/bootstrap/argocd/values.yaml"
+        dest: /tmp/argocd-values.yaml
+        mode: "0644"
+
+    # Re-run install now that values file is present (idempotent)
+    - name: Upgrade ArgoCD with values
+      ansible.builtin.command: >
+        helm upgrade --install argocd argo/argo-cd
+        --namespace argocd
+        --version "{{ argocd_version }}"
+        --values /tmp/argocd-values.yaml
+        --wait
+      changed_when: false
+
+    # ── Longhorn ──────────────────────────────────────────────────────────────
+    - name: Create longhorn-system namespace
+      ansible.builtin.command: kubectl create namespace longhorn-system --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Install Longhorn via helm (bypasses ArgoCD pre-upgrade hook SA issue)
+      ansible.builtin.command: >
+        helm upgrade --install longhorn longhorn/longhorn
+        --namespace longhorn-system
+        --version "{{ longhorn_version }}"
+        --wait --timeout 10m
+      changed_when: false
+
+    # ── Sealed Secrets controller ─────────────────────────────────────────────
+    - name: Install Sealed Secrets controller via helm
+      ansible.builtin.command: >
+        helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets
+        --namespace kube-system
+        --set fullnameOverride=sealed-secrets-controller
+        --wait
+      changed_when: false
+
+    # ── Sealed Secret manifests ───────────────────────────────────────────────
+    # These files are already encrypted (committed to git). Apply them so the
+    # controller decrypts them into real Secrets before ArgoCD tries to use them.
+
+    - name: Create vaultwarden namespace
+      ansible.builtin.command: kubectl create namespace vaultwarden --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Create cloudflared namespace
+      ansible.builtin.command: kubectl create namespace cloudflared --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Create immich namespace
+      ansible.builtin.command: kubectl create namespace immich --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Apply vaultwarden SealedSecret
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/vaultwarden/sealed-secret.yaml
+      changed_when: false
+
+    - name: Apply cloudflared SealedSecret
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/cloudflared/sealed-secret.yaml
+      changed_when: false
+
+    - name: Apply immich SealedSecret
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/immich/secret.yaml
+      changed_when: false
+
+    # ── App-of-Apps ───────────────────────────────────────────────────────────
+    - name: Apply ArgoCD App-of-Apps
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/bootstrap/argocd/app-of-apps.yaml
+      changed_when: false
+
+    - name: Bootstrap complete
+      ansible.builtin.debug:
+        msg: |
+          Bootstrap done. ArgoCD is now managing all apps via the App-of-Apps.
+          Longhorn was installed directly via helm (auto-sync is suspended in ArgoCD).
+          Sealed Secrets controller is running — existing SealedSecrets are decrypted.
+
+          Next steps if this is a fresh cluster:
+            1. Push your branch: git push origin {{ target_revision }}
+            2. ArgoCD will sync vaultwarden, immich, cloudflared automatically.
+            3. To re-enable Longhorn ArgoCD auto-sync (optional, after initial install):
+               kubectl patch application longhorn -n argocd --type merge \
+                 -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'

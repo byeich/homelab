@@ -24,9 +24,23 @@ spec:
               value: "home.bkylab.net"
           volumeMounts:
             - name: config
-              mountPath: /app/config
-            - name: logs
-              mountPath: /app/config/logs
+              mountPath: /app/config/settings.yaml
+              subPath: settings.yaml
+            - name: config
+              mountPath: /app/config/services.yaml
+              subPath: services.yaml
+            - name: config
+              mountPath: /app/config/widgets.yaml
+              subPath: widgets.yaml
+            - name: config
+              mountPath: /app/config/bookmarks.yaml
+              subPath: bookmarks.yaml
+            - name: config
+              mountPath: /app/config/kubernetes.yaml
+              subPath: kubernetes.yaml
+            - name: config
+              mountPath: /app/config/docker.yaml
+              subPath: docker.yaml
           livenessProbe:
             httpGet:
               path: /
@@ -37,5 +51,3 @@ spec:
         - name: config
           configMap:
             name: homepage-config
-        - name: logs
-          emptyDir: {}

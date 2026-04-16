@@ -32,3 +32,15 @@ spec:
         - name: model-cache
           persistentVolumeClaim:
             claimName: immich-model-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-machine-learning
+  namespace: immich
+spec:
+  selector:
+    app: immich-machine-learning
+  ports:
+    - port: 3003
+      targetPort: 3003

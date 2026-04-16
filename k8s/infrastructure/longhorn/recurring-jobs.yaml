@@ -4,6 +4,7 @@ metadata:
   name: daily-backup
   namespace: longhorn-system
 spec:
+  name: daily-backup
   cron: "0 2 * * *"   # 2am daily
   task: backup
   groups:
@@ -18,6 +19,7 @@ metadata:
   name: weekly-snapshot
   namespace: longhorn-system
 spec:
+  name: weekly-snapshot
   cron: "0 1 * * 0"   # 1am every Sunday
   task: snapshot
   groups:

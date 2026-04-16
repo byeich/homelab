@@ -14,6 +14,7 @@ spec:
     metadata:
       labels:
         app: vaultwarden
+        app.kubernetes.io/name: vaultwarden
     spec:
       containers:
         - name: vaultwarden

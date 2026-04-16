@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app: immich-server
+        app.kubernetes.io/name: immich-server
     spec:
       containers:
         - name: immich-server

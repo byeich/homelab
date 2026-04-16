@@ -5,13 +5,6 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: https://charts.longhorn.io
-    chart: longhorn
-    targetRevision: 1.7.x
-    helm:
-      valueFiles:
-        - $values/k8s/infrastructure/longhorn/values.yaml
   sources:
     - repoURL: https://charts.longhorn.io
       chart: longhorn

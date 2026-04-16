@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: homepage
+data:
+  settings.yaml: |
+    title: bkylab
+    theme: dark
+    color: slate
+    headerStyle: clean
+    layout:
+      Media:
+        icon: mdi-play-circle
+      Files & Storage:
+        icon: mdi-folder-multiple
+      Security:
+        icon: mdi-shield-lock
+      Infrastructure:
+        icon: mdi-server
+
+  widgets.yaml: |
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: homelab
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - datetime:
+        text_size: xl
+        format:
+          dateStyle: long
+          timeStyle: short
+          hourCycle: h23
+
+  services.yaml: |
+    - Media:
+        - Immich:
+            href: https://immich.bkylab.net
+            description: Photo library
+            icon: immich.png
+            namespace: immich
+            app: immich-server
+        - Jellyfin:
+            href: http://10.0.0.9:30013
+            description: Media server
+            icon: jellyfin.png
+
+    - Files & Storage:
+        - Nextcloud:
+            href: http://10.0.0.11
+            description: File sync
+            icon: nextcloud.png
+        - TrueNAS:
+            href: http://10.0.0.9
+            description: NAS storage
+            icon: truenas.png
+
+    - Security:
+        - Vaultwarden:
+            href: https://vaultwarden.bkylab.net
+            description: Password manager
+            icon: vaultwarden.png
+            namespace: vaultwarden
+            app: vaultwarden
+        - Pi-hole:
+            href: https://10.0.0.53/admin/
+            description: DNS & ad blocking
+            icon: pi-hole.png
+
+    - Infrastructure:
+        - Proxmox:
+            href: https://10.0.0.10:8006
+            description: Hypervisor
+            icon: proxmox.png
+        - Router:
+            href: http://10.0.0.1
+            description: Router
+            icon: router.png
+
+  bookmarks.yaml: |
+    []
+
+  kubernetes.yaml: |
+    mode: cluster
+
+  docker.yaml: |
+    {}

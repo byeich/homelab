@@ -13,4 +13,6 @@ data:
         service: http://vaultwarden.vaultwarden.svc.cluster.local:80
       - hostname: immich.bkylab.net
         service: http://immich-server.immich.svc.cluster.local:2283
+      - hostname: home.bkylab.net
+        service: http://homepage.homepage.svc.cluster.local:3000
       - service: http_status:404

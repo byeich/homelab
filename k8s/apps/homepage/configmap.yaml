@@ -93,11 +93,11 @@ data:
             description: Router
             icon: router.png
         - ArgoCD:
-            href: http://localhost:8080
+            href: http://argocd.bkylab.net
             description: GitOps
             icon: argo-cd.png
         - Longhorn:
-            href: http://localhost:8081
+            href: http://longhorn.bkylab.net
             description: Distributed storage
             icon: longhorn.png
 

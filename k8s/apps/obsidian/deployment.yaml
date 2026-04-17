@@ -16,6 +16,8 @@ spec:
         app: obsidian
         app.kubernetes.io/name: obsidian
     spec:
+      securityContext:
+        fsGroup: 5984
       containers:
         - name: couchdb
           image: couchdb:3

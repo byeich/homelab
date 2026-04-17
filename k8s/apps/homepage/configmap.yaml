@@ -13,9 +13,9 @@ data:
       image: https://www.nasa.gov/wp-content/uploads/2025/12/casa-lg.jpg
       blur: sm
       saturate: 70
-      brightness: 40
-      opacity: 80
-    cardBlur: md
+      brightness: 60
+      opacity: 90
+    cardBlur: xl
     layout:
       Media:
         icon: mdi-play-circle
@@ -112,7 +112,7 @@ data:
               icon: cloudflare.png
               description: DNS & tunnels
         - Cloudflare Zero Trust:
-            - href: https://one.dash.cloudflare.com
+            - href: https://dash.cloudflare.com
               icon: cloudflare-zero-trust.png
               description: Access & security
 

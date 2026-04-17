@@ -10,7 +10,7 @@ data:
     color: slate
     headerStyle: clean
     background:
-      image: https://images.unsplash.com/photo-1501691223387-dd0500403074?w=1920&q=80
+      image: https://www.nasa.gov/wp-content/uploads/2025/12/casa-lg.jpg
       blur: sm
       saturate: 70
       brightness: 40

@@ -178,19 +178,19 @@ else
   warn "Skipped immich-secret. Apply it manually before ArgoCD syncs immich."
 fi
 
-# CouchDB (Obsidian LiveSync)
+# Obsidian LiveSync (CouchDB)
 echo ""
-prompt "Enter the CouchDB admin password for Obsidian LiveSync (or press Enter to skip):"
-read -r -s COUCHDB_PASS
-if [[ -n "$COUCHDB_PASS" ]]; then
-  kubectl create namespace couchdb --dry-run=client -o yaml | kubectl apply -f -
-  seal_secret couchdb-secret couchdb \
-    "$REPO_ROOT/k8s/apps/couchdb/sealed-secret.yaml" \
+prompt "Enter the Obsidian LiveSync admin password (or press Enter to skip):"
+read -r -s OBSIDIAN_PASS
+if [[ -n "$OBSIDIAN_PASS" ]]; then
+  kubectl create namespace obsidian --dry-run=client -o yaml | kubectl apply -f -
+  seal_secret obsidian-secret obsidian \
+    "$REPO_ROOT/k8s/apps/obsidian/sealed-secret.yaml" \
     --from-literal=admin-user=admin \
-    --from-literal=admin-password="$COUCHDB_PASS"
-  unset COUCHDB_PASS
+    --from-literal=admin-password="$OBSIDIAN_PASS"
+  unset OBSIDIAN_PASS
 else
-  warn "Skipped couchdb-secret. Apply it manually before ArgoCD syncs couchdb."
+  warn "Skipped obsidian-secret. Apply it manually before ArgoCD syncs obsidian."
 fi
 
 # ── Step 8: Apply sealed secrets to cluster ───────────────────────────────────
@@ -200,7 +200,7 @@ for f in \
   "$REPO_ROOT/k8s/apps/vaultwarden/sealed-secret.yaml" \
   "$REPO_ROOT/k8s/apps/cloudflared/sealed-secret.yaml" \
   "$REPO_ROOT/k8s/apps/immich/sealed-secret.yaml" \
-  "$REPO_ROOT/k8s/apps/couchdb/sealed-secret.yaml"; do
+  "$REPO_ROOT/k8s/apps/obsidian/sealed-secret.yaml"; do
   if grep -q "REPLACE_WITH_KUBESEAL_OUTPUT" "$f" 2>/dev/null; then
     warn "Skipping $f — not yet sealed (still has placeholder)."
   else
@@ -224,7 +224,7 @@ echo "  Next steps:"
 echo "    1. git add k8s/apps/vaultwarden/sealed-secret.yaml \\"
 echo "             k8s/apps/cloudflared/sealed-secret.yaml \\"
 echo "             k8s/apps/immich/sealed-secret.yaml \\"
-echo "             k8s/apps/couchdb/sealed-secret.yaml"
+echo "             k8s/apps/obsidian/sealed-secret.yaml"
 echo "    2. git commit -m 'chore: seal secrets'"
 echo "    3. git push origin <branch>"
 echo "    4. ArgoCD will sync vaultwarden, immich, cloudflared automatically."

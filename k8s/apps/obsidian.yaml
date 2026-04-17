@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: couchdb
+  name: obsidian
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
     targetRevision: k3s-time
-    path: k8s/apps/couchdb
+    path: k8s/apps/obsidian
   destination:
     server: https://kubernetes.default.svc
-    namespace: couchdb
+    namespace: obsidian
   syncPolicy:
     automated:
       prune: true

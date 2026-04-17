@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: couchdb
-  namespace: couchdb
+  name: obsidian
+  namespace: obsidian
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: couchdb
+      app: obsidian
   template:
     metadata:
       labels:
-        app: couchdb
-        app.kubernetes.io/name: couchdb
+        app: obsidian
+        app.kubernetes.io/name: obsidian
     spec:
       containers:
         - name: couchdb
@@ -25,12 +25,12 @@ spec:
             - name: COUCHDB_USER
               valueFrom:
                 secretKeyRef:
-                  name: couchdb-secret
+                  name: obsidian-secret
                   key: admin-user
             - name: COUCHDB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: couchdb-secret
+                  name: obsidian-secret
                   key: admin-password
           volumeMounts:
             - name: data
@@ -41,7 +41,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: couchdb-data
+            claimName: obsidian-data
         - name: config
           configMap:
-            name: couchdb-config
+            name: obsidian-config

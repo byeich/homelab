@@ -15,4 +15,6 @@ data:
         service: http://immich-server.immich.svc.cluster.local:2283
       - hostname: home.bkylab.net
         service: http://homepage.homepage.svc.cluster.local:3000
+      - hostname: obsidian.bkylab.net
+        service: http://couchdb.couchdb.svc.cluster.local:5984
       - service: http_status:404

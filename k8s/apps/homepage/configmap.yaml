@@ -62,6 +62,12 @@ data:
             icon: jellyfin.png
 
     - Files & Storage:
+        - Obsidian LiveSync:
+            href: https://obsidian.bkylab.net
+            description: Notes sync
+            icon: couchdb.png
+            namespace: couchdb
+            app: couchdb
         - Nextcloud:
             href: http://10.0.0.11
             description: File sync

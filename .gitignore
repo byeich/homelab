@@ -13,6 +13,7 @@ inventory.ini
 ###### Secrets ######
 secrets-local/
 *.plaintext.yaml
+*.json
 
 ###### Other ######
 .vscode/

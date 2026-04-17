@@ -8,6 +8,9 @@ data:
     [httpd]
     enable_cors = true
 
+    [chttpd]
+    require_valid_user = true
+
     [cors]
     origins = app://obsidian.md,capacitor://localhost,http://localhost
     credentials = true

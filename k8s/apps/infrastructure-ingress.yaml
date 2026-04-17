@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: k3s-time
+    targetRevision: main
     path: k8s/infrastructure/ingress
   destination:
     server: https://kubernetes.default.svc

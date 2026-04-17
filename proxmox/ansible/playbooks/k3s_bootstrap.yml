@@ -1,28 +1,15 @@
 ---
-# Bootstrap playbook — run AFTER k3s.yml has finished and the cluster is healthy.
-# Installs ArgoCD, Longhorn (via helm to sidestep pre-upgrade hook chicken-and-egg),
-# applies SealedSecret manifests, then kicks off the App-of-Apps so ArgoCD takes over.
-#
-# Usage:
-#   ansible-playbook -i inventory.ini playbooks/k3s_bootstrap.yml
-#
-# Full rebuild flow:
-#   tofu apply                        # provision VMs
-#   ansible-playbook k3s.yml          # install k3s (common + control + worker)
-#   ansible-playbook k3s_bootstrap.yml
-#   git push origin k3s-time          # ArgoCD syncs all apps
-
 - name: Bootstrap k3s cluster
-  hosts: k3s-control[0]   # run once from the first control node
+  hosts: k3s-control[0]
   become: true
   vars:
     argocd_version: "7.x"
     longhorn_version: "1.7.x"
     repo_url: "https://github.com/byeich/homelab"
-    target_revision: "k3s-time"
+    target_revision: "main"
 
   tasks:
-    # ── Helm repos ────────────────────────────────────────────────────────────
+    ######## Helm repos ########
     - name: Add argo helm repo
       ansible.builtin.command: helm repo add argo https://argoproj.github.io/argo-helm
       changed_when: false
@@ -39,7 +26,7 @@
       ansible.builtin.command: helm repo update
       changed_when: false
 
-    # ── ArgoCD ────────────────────────────────────────────────────────────────
+    ######## ArgoCD ########
     - name: Create argocd namespace
       ansible.builtin.command: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
       changed_when: false
@@ -59,7 +46,6 @@
         dest: /tmp/argocd-values.yaml
         mode: "0644"
 
-    # Re-run install now that values file is present (idempotent)
     - name: Upgrade ArgoCD with values
       ansible.builtin.command: >
         helm upgrade --install argocd argo/argo-cd
@@ -69,7 +55,7 @@
         --wait
       changed_when: false
 
-    # ── Longhorn ──────────────────────────────────────────────────────────────
+    ######## Longhorn ########
     - name: Create longhorn-system namespace
       ansible.builtin.command: kubectl create namespace longhorn-system --dry-run=client -o yaml | kubectl apply -f -
       changed_when: false
@@ -82,7 +68,7 @@
         --wait --timeout 10m
       changed_when: false
 
-    # ── Sealed Secrets controller ─────────────────────────────────────────────
+    ######## Sealed Secrets controller ########
     - name: Install Sealed Secrets controller via helm
       ansible.builtin.command: >
         helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets
@@ -91,9 +77,9 @@
         --wait
       changed_when: false
 
-    # ── Sealed Secret manifests ───────────────────────────────────────────────
-    # These files are already encrypted (committed to git). Apply them so the
-    # controller decrypts them into real Secrets before ArgoCD tries to use them.
+    ######## Sealed Secret manifests ########
+    # These files are already encrypted on github. Apply them so the
+    # controller decrypts them into secrets
 
     - name: Create vaultwarden namespace
       ansible.builtin.command: kubectl create namespace vaultwarden --dry-run=client -o yaml | kubectl apply -f -
@@ -119,21 +105,11 @@
       ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/immich/secret.yaml
       changed_when: false
 
-    # ── App-of-Apps ───────────────────────────────────────────────────────────
+    ######## App-of-Apps ########
     - name: Apply ArgoCD App-of-Apps
       ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/bootstrap/argocd/app-of-apps.yaml
       changed_when: false
 
     - name: Bootstrap complete
       ansible.builtin.debug:
-        msg: |
-          Bootstrap done. ArgoCD is now managing all apps via the App-of-Apps.
-          Longhorn was installed directly via helm (auto-sync is suspended in ArgoCD).
-          Sealed Secrets controller is running — existing SealedSecrets are decrypted.
-
-          Next steps if this is a fresh cluster:
-            1. Push your branch: git push origin {{ target_revision }}
-            2. ArgoCD will sync vaultwarden, immich, cloudflared automatically.
-            3. To re-enable Longhorn ArgoCD auto-sync (optional, after initial install):
-               kubectl patch application longhorn -n argocd --type merge \
-                 -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+        msg: "Bootstrap done. ArgoCD is managing all apps. Push your branch to trigger sync."

@@ -48,6 +48,7 @@ cd proxmox/ansible
 | `playbooks/pihole.yml` | `pihole` | Pi-hole DNS install and configuration |
 | `playbooks/k3s.yml` | `k3s-control`, `k3s-workers` | k3s cluster setup (control plane + workers) |
 | `playbooks/k3s_disk_prep.yml` | `k3s-workers` | Prepare extra disks for Longhorn storage |
+| `playbooks/k3s_bootstrap.yml` | `k3s-control[0]` | Install ArgoCD, Longhorn, Sealed Secrets via Helm; apply sealed secrets from git; kick off App-of-Apps. Run after `k3s.yml`. |
 
 **Examples:**
 ```bash
@@ -58,29 +59,35 @@ cd proxmox/ansible
 
 ## k3s Cluster Bootstrap
 
-After VMs are provisioned and `k3s.yml` has run, use the bootstrap script to finish setting up the cluster:
+After `k3s.yml` has run, one of two bootstrap paths finishes the cluster setup:
 
+**Fresh cluster (secrets not yet sealed):** Run `scripts/bootstrap.sh` from your Mac. It installs local tools, copies kubeconfig, prompts for secret values and seals them with `kubeseal`, installs ArgoCD/Longhorn/Sealed Secrets via Helm, and kicks off the App-of-Apps.
 ```bash
 ./scripts/bootstrap.sh
 ```
 
-This script (Mac-native, requires Homebrew) will:
-1. Install `helm`, `kubectl`, and `kubeseal` if not already present
-2. Copy the kubeconfig from the first control node (`10.0.0.60`)
-3. Prompt for secret values and seal them with `kubeseal` (nothing written to disk in plaintext)
-4. Install ArgoCD, Longhorn, and Sealed Secrets via Helm
-5. Apply the sealed secrets and kick off the ArgoCD App-of-Apps
+**Rebuild (sealed secrets already committed to git):** Run the Ansible playbook instead — no interactive prompts needed.
+```bash
+./run-playbook.sh playbooks/k3s_bootstrap.yml --private-key ~/.ssh/k3s_cluster
+```
 
 **Full rebuild flow:**
 ```bash
-tofu apply                            # provision VMs
-./run-playbook.sh playbooks/k3s.yml   # install k3s on all nodes
-./run-playbook.sh playbooks/k3s_disk_prep.yml  # prep Longhorn disks on workers
-./scripts/bootstrap.sh                # ArgoCD + Longhorn + secrets + app-of-apps
-git push origin <branch>              # ArgoCD syncs all apps
+tofu apply                                           # provision VMs
+./run-playbook.sh playbooks/k3s.yml                  # install k3s on all nodes
+./run-playbook.sh playbooks/k3s_disk_prep.yml        # prep Longhorn disks on workers
+./scripts/bootstrap.sh                               # fresh: seal secrets + install infra
+# or: ./run-playbook.sh playbooks/k3s_bootstrap.yml  # rebuild: install infra, apply sealed secrets from git
+git push origin <branch>                             # ArgoCD syncs all apps
 ```
 
-> **Why Longhorn is installed via Helm and not ArgoCD:** Longhorn's pre-upgrade Helm hook requires a ServiceAccount that doesn't exist until the chart installs it. ArgoCD hits a chicken-and-egg failure on a fresh cluster. The bootstrap script installs it directly; ArgoCD then adopts and manages it going forward.
+> **Why Longhorn is installed via Helm and not ArgoCD:** Longhorn's pre-upgrade Helm hook requires a ServiceAccount that doesn't exist until the chart installs it, which fails on a fresh cluster deploy. The bootstrap script installs it directly and ArgoCD adopts and manages it.
+>
+> After the initial helm install, re-enable ArgoCD auto-sync for Longhorn:
+> ```bash
+> kubectl patch application longhorn -n argocd --type merge \
+>   -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+> ```
 
 ## GitOps (ArgoCD)
 
@@ -96,9 +103,12 @@ All Kubernetes workloads are managed via ArgoCD using the App-of-Apps pattern.
 |---|---|---|
 | Vaultwarden | `vaultwarden` | Password manager, RWO Longhorn PVC |
 | Immich | `immich` | Photo library, photos on NFS (TrueNAS), DB on Longhorn |
-| Cloudflared | `cloudflared` | Cloudflare tunnel — routes `vaultwarden.bkylab.net` and `immich.bkylab.net` |
+| Homepage | `homepage` | Dashboard at `home.bkylab.net`, Cloudflare Access protected |
+| Obsidian | `obsidian` | CouchDB backend for Obsidian notes sync at `obsidian.bkylab.net` |
+| Cloudflared | `cloudflared` | Cloudflare tunnel — routes all `*.bkylab.net` public services |
 | Longhorn | `longhorn-system` | Distributed block storage, daily backups + weekly snapshots |
 | Sealed Secrets | `kube-system` | Encrypts secrets for safe git storage |
+| Reloader | `reloader` | Auto-restarts pods when their ConfigMap or Secret changes |
 
 ## Secrets
 

@@ -13,7 +13,7 @@ spec:
         valueFiles:
           - $values/k8s/infrastructure/longhorn/values.yaml
     - repoURL: https://github.com/byeich/homelab
-      targetRevision: k3s-time
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bootstrap.sh — Full cluster setup from scratch on a Mac.
+# bootstrap.sh — Full cluster setup from scratch on MacOS.
 #
 # Run this AFTER k3s nodes are provisioned and k3s.yml Ansible playbook has run.
 #
@@ -24,16 +24,14 @@ SSH_USER="debian"
 ARGOCD_VERSION="7.x"
 LONGHORN_VERSION="1.7.x"
 
-# ── Colors ────────────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info()    { echo -e "${GREEN}[INFO]${NC} $*"; }
 warn()    { echo -e "${YELLOW}[WARN]${NC} $*"; }
 prompt()  { echo -e "${YELLOW}[INPUT]${NC} $*"; }
 section() { echo -e "\n${GREEN}══════════════════════════════════════${NC}"; echo -e "${GREEN}  $*${NC}"; echo -e "${GREEN}══════════════════════════════════════${NC}"; }
 
-# ── Step 1: Mac prerequisites ─────────────────────────────────────────────────
-section "Step 1: Mac prerequisites"
 
+section "Step 1: Mac prerequisites"
 if ! command -v brew &>/dev/null; then
   echo -e "${RED}Homebrew not found. Install it first: https://brew.sh${NC}"
   exit 1
@@ -48,9 +46,7 @@ for tool in helm kubectl kubeseal; do
   fi
 done
 
-# ── Step 2: Kubeconfig ────────────────────────────────────────────────────────
 section "Step 2: Configure kubectl"
-
 KUBECONFIG_PATH="$HOME/.kube/k3s-homelab.yaml"
 mkdir -p "$HOME/.kube"
 
@@ -67,18 +63,14 @@ info "KUBECONFIG set to $KUBECONFIG_PATH"
 info "Verifying cluster connectivity..."
 kubectl get nodes
 
-# ── Step 3: Helm repos ────────────────────────────────────────────────────────
 section "Step 3: Helm repos"
-
 helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
 helm repo add longhorn https://charts.longhorn.io 2>/dev/null || true
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets 2>/dev/null || true
 helm repo update
 info "Helm repos up to date."
 
-# ── Step 4: Install ArgoCD ───────────────────────────────────────────────────
 section "Step 4: Install ArgoCD"
-
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \
@@ -87,9 +79,7 @@ helm upgrade --install argocd argo/argo-cd \
   --wait
 info "ArgoCD installed."
 
-# ── Step 5: Install Longhorn ─────────────────────────────────────────────────
 section "Step 5: Install Longhorn (via helm, not ArgoCD)"
-
 kubectl create namespace longhorn-system --dry-run=client -o yaml | kubectl apply -f -
 helm upgrade --install longhorn longhorn/longhorn \
   --namespace longhorn-system \
@@ -97,18 +87,14 @@ helm upgrade --install longhorn longhorn/longhorn \
   --wait --timeout 10m
 info "Longhorn installed."
 
-# ── Step 6: Install Sealed Secrets controller ─────────────────────────────────
 section "Step 6: Install Sealed Secrets controller"
-
 helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
   --namespace kube-system \
   --set fullnameOverride=sealed-secrets-controller \
   --wait
 info "Sealed Secrets controller installed."
 
-# ── Step 7: Seal secrets ─────────────────────────────────────────────────────
 section "Step 7: Seal secrets with kubeseal"
-
 warn "You will now be prompted for secret values."
 warn "These are NEVER written to disk — they are piped directly through kubeseal."
 warn "The output (encrypted SealedSecret) will be written to git-tracked files."
@@ -178,9 +164,9 @@ else
   warn "Skipped immich-secret. Apply it manually before ArgoCD syncs immich."
 fi
 
-# Obsidian LiveSync (CouchDB)
+# Obsidian (CouchDB)
 echo ""
-prompt "Enter the Obsidian LiveSync admin password (or press Enter to skip):"
+prompt "Enter the Obsidian CouchDB admin password (or press Enter to skip):"
 read -r -s OBSIDIAN_PASS
 if [[ -n "$OBSIDIAN_PASS" ]]; then
   kubectl create namespace obsidian --dry-run=client -o yaml | kubectl apply -f -
@@ -193,9 +179,7 @@ else
   warn "Skipped obsidian-secret. Apply it manually before ArgoCD syncs obsidian."
 fi
 
-# ── Step 8: Apply sealed secrets to cluster ───────────────────────────────────
 section "Step 8: Apply sealed secrets"
-
 for f in \
   "$REPO_ROOT/k8s/apps/vaultwarden/sealed-secret.yaml" \
   "$REPO_ROOT/k8s/apps/cloudflared/sealed-secret.yaml" \
@@ -209,13 +193,10 @@ for f in \
   fi
 done
 
-# ── Step 9: App-of-Apps ───────────────────────────────────────────────────────
 section "Step 9: Apply ArgoCD App-of-Apps"
-
 kubectl apply -f "$REPO_ROOT/k8s/bootstrap/argocd/app-of-apps.yaml"
 info "App-of-Apps applied. ArgoCD will now sync all apps from git."
 
-# ── Done ──────────────────────────────────────────────────────────────────────
 section "Bootstrap complete!"
 echo ""
 echo "  KUBECONFIG=$KUBECONFIG_PATH"

@@ -129,6 +129,19 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
     ssd          = true
   }
 
+  # Longhorn data disk (workers only)
+  dynamic "disk" {
+    for_each = startswith(each.key, "k3s-worker") ? [1] : []
+    content {
+      datastore_id = local.defaults.vm_rootds
+      interface    = "scsi1"
+      iothread     = true
+      discard      = "on"
+      size         = 50
+      ssd          = true
+    }
+  }
+
   memory {
     dedicated = each.value.memory
   }

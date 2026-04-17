@@ -1,0 +1,5 @@
+- name: Prepare worker nodes for Longhorn storage
+  hosts: k3s-workers
+  become: true
+  roles:
+    - k3s_disk_prep

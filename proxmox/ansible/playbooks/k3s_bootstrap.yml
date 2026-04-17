@@ -1,0 +1,115 @@
+---
+- name: Bootstrap k3s cluster
+  hosts: k3s-control[0]
+  become: true
+  vars:
+    argocd_version: "7.x"
+    longhorn_version: "1.7.x"
+    repo_url: "https://github.com/byeich/homelab"
+    target_revision: "main"
+
+  tasks:
+    ######## Helm repos ########
+    - name: Add argo helm repo
+      ansible.builtin.command: helm repo add argo https://argoproj.github.io/argo-helm
+      changed_when: false
+
+    - name: Add longhorn helm repo
+      ansible.builtin.command: helm repo add longhorn https://charts.longhorn.io
+      changed_when: false
+
+    - name: Add sealed-secrets helm repo
+      ansible.builtin.command: helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+      changed_when: false
+
+    - name: Update helm repos
+      ansible.builtin.command: helm repo update
+      changed_when: false
+
+    ######## ArgoCD ########
+    - name: Create argocd namespace
+      ansible.builtin.command: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Install ArgoCD via helm
+      ansible.builtin.command: >
+        helm upgrade --install argocd argo/argo-cd
+        --namespace argocd
+        --version "{{ argocd_version }}"
+        --values /tmp/argocd-values.yaml
+        --wait
+      changed_when: false
+
+    - name: Copy ArgoCD values to control node
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../../k8s/bootstrap/argocd/values.yaml"
+        dest: /tmp/argocd-values.yaml
+        mode: "0644"
+
+    - name: Upgrade ArgoCD with values
+      ansible.builtin.command: >
+        helm upgrade --install argocd argo/argo-cd
+        --namespace argocd
+        --version "{{ argocd_version }}"
+        --values /tmp/argocd-values.yaml
+        --wait
+      changed_when: false
+
+    ######## Longhorn ########
+    - name: Create longhorn-system namespace
+      ansible.builtin.command: kubectl create namespace longhorn-system --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Install Longhorn via helm (bypasses ArgoCD pre-upgrade hook SA issue)
+      ansible.builtin.command: >
+        helm upgrade --install longhorn longhorn/longhorn
+        --namespace longhorn-system
+        --version "{{ longhorn_version }}"
+        --wait --timeout 10m
+      changed_when: false
+
+    ######## Sealed Secrets controller ########
+    - name: Install Sealed Secrets controller via helm
+      ansible.builtin.command: >
+        helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets
+        --namespace kube-system
+        --set fullnameOverride=sealed-secrets-controller
+        --wait
+      changed_when: false
+
+    ######## Sealed Secret manifests ########
+    # These files are already encrypted on github. Apply them so the
+    # controller decrypts them into secrets
+
+    - name: Create vaultwarden namespace
+      ansible.builtin.command: kubectl create namespace vaultwarden --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Create cloudflared namespace
+      ansible.builtin.command: kubectl create namespace cloudflared --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Create immich namespace
+      ansible.builtin.command: kubectl create namespace immich --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: false
+
+    - name: Apply vaultwarden SealedSecret
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/vaultwarden/sealed-secret.yaml
+      changed_when: false
+
+    - name: Apply cloudflared SealedSecret
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/cloudflared/sealed-secret.yaml
+      changed_when: false
+
+    - name: Apply immich SealedSecret
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/immich/secret.yaml
+      changed_when: false
+
+    ######## App-of-Apps ########
+    - name: Apply ArgoCD App-of-Apps
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/bootstrap/argocd/app-of-apps.yaml
+      changed_when: false
+
+    - name: Bootstrap complete
+      ansible.builtin.debug:
+        msg: "Bootstrap done. ArgoCD is managing all apps. Push your branch to trigger sync."

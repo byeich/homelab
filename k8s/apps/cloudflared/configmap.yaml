@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: cloudflared
+data:
+  config.yaml: |
+    tunnel: a1c6f9ec-b941-4595-b755-3d43f45a2c1b
+    credentials-file: /etc/cloudflared/creds/credentials.json
+
+    ingress:
+      - hostname: vaultwarden.bkylab.net
+        service: http://vaultwarden.vaultwarden.svc.cluster.local:80
+      - hostname: immich.bkylab.net
+        service: http://immich-server.immich.svc.cluster.local:2283
+      - hostname: home.bkylab.net
+        service: http://homepage.homepage.svc.cluster.local:3000
+      - hostname: obsidian.bkylab.net
+        service: http://obsidian.obsidian.svc.cluster.local:5984
+      - service: http_status:404

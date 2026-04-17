@@ -13,7 +13,15 @@
     name:
       - curl
       - ca-certificates
+      - open-iscsi
+      - nfs-common
     state: present
+
+- name: Enable and start iscsid
+  ansible.builtin.systemd:
+    name: iscsid
+    enabled: true
+    state: started
 
 - name: Disable swap immediately
   ansible.builtin.command: swapoff -a

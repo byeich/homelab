@@ -34,6 +34,22 @@ spec:
                 secretKeyRef:
                   name: obsidian-secret
                   key: admin-password
+            - name: COUCHDB_SINGLE_NODE
+              value: "true"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    until curl -sf http://localhost:5984/_up; do sleep 1; done
+                    curl -s -X PUT "http://$COUCHDB_USER:$COUCHDB_PASSWORD@localhost:5984/_node/_local/_config/httpd/enable_cors" -d '"true"'
+                    curl -s -X PUT "http://$COUCHDB_USER:$COUCHDB_PASSWORD@localhost:5984/_node/_local/_config/chttpd/require_valid_user" -d '"true"'
+                    curl -s -X PUT "http://$COUCHDB_USER:$COUCHDB_PASSWORD@localhost:5984/_node/_local/_config/cors/origins" -d '"app://obsidian.md,capacitor://localhost,http://localhost"'
+                    curl -s -X PUT "http://$COUCHDB_USER:$COUCHDB_PASSWORD@localhost:5984/_node/_local/_config/cors/credentials" -d '"true"'
+                    curl -s -X PUT "http://$COUCHDB_USER:$COUCHDB_PASSWORD@localhost:5984/_node/_local/_config/cors/headers" -d '"accept, authorization, content-type, origin, referer"'
+                    curl -s -X PUT "http://$COUCHDB_USER:$COUCHDB_PASSWORD@localhost:5984/_node/_local/_config/cors/methods" -d '"GET, PUT, DELETE, POST, HEAD"'
           volumeMounts:
             - name: data
               mountPath: /opt/couchdb/data

@@ -13,17 +13,19 @@ locals {
         pihole   = { vm_id = 303, memory = 512, cores = 1 , ip = "10.0.0.53/24"}
     }
 
-    # K3s VMs    
+    # K3s VMs
     vms = {
-        # Control Plane Nodes
-        k3s-control-1 = { vm_id = 310, memory = 4096, cores = 2, ip = "10.0.0.60/24" }
-        k3s-control-2 = { vm_id = 311, memory = 4096, cores = 2, ip = "10.0.0.61/24" }
-        k3s-control-3 = { vm_id = 312, memory = 4096, cores = 2, ip = "10.0.0.62/24" }
-        
+        # Control Nodes
+        k3s-control-1 = { vm_id = 310, memory = 4096, cores = 2, ip = "10.0.0.60/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+        k3s-control-2 = { vm_id = 311, memory = 4096, cores = 2, ip = "10.0.0.61/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+        k3s-control-3 = { vm_id = 312, memory = 4096, cores = 2, ip = "10.0.0.62/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+
         # Worker Nodes
-        k3s-worker-1  = { vm_id = 320, memory = 4096, cores = 2, ip = "10.0.0.70/24" }
-        k3s-worker-2  = { vm_id = 321, memory = 4096, cores = 2, ip = "10.0.0.71/24" }
-        k3s-worker-3  = { vm_id = 322, memory = 4096, cores = 2, ip = "10.0.0.72/24" }
+        k3s-worker-1  = { vm_id = 320, memory = 4096, cores = 2, ip = "10.0.0.70/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+        k3s-worker-2  = { vm_id = 321, memory = 4096, cores = 2, ip = "10.0.0.71/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+        k3s-worker-3  = { vm_id = 322, memory = 4096, cores = 2, ip = "10.0.0.72/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+        k3s-worker-4  = { vm_id = 323, memory = 4096, cores = 2, ip = "10.0.0.73/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
+        k3s-worker-5  = { vm_id = 324, memory = 4096, cores = 2, ip = "10.0.0.74/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
     }
 }
 
@@ -80,7 +82,7 @@ resource "proxmox_virtual_environment_container" "svc" {
 ###### Create K3s VMs ######
 resource "proxmox_virtual_environment_vm" "k3s_vms" {
   for_each  = local.vms
-  node_name = local.defaults.vm_node
+  node_name = each.value.node
   vm_id     = each.value.vm_id
   name      = each.key
 
@@ -93,7 +95,7 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
   }
 
   clone {
-    vm_id = 9000  #id of debian template in proxmox
+    vm_id = each.value.template_id
     full  = false
   }
 
@@ -122,11 +124,11 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
 
   disk {
     datastore_id = local.defaults.vm_rootds
-    interface    = "scsi0"
+    interface    = "virtio0"
     iothread     = true
     discard      = "on"
     size         = 32
-    ssd          = true
+    ssd          = false
   }
 
   # Longhorn data disk (workers only)
@@ -137,7 +139,7 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
       interface    = "scsi1"
       iothread     = true
       discard      = "on"
-      size         = 50
+      size         = each.value.longhorn_disk_size
       ssd          = true
     }
   }

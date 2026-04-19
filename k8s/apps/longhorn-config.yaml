@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: main
+    targetRevision: add-workers
     path: k8s/infrastructure/longhorn
     directory:
       exclude: "values.yaml"

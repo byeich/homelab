@@ -95,7 +95,7 @@ data:
             description: Monitoring & dashboards
             icon: grafana.png
             namespace: monitoring
-            app: kube-prometheus-stack-grafana
+            app: grafana
         - Proxmox:
             href: https://10.0.0.10:8006
             description: Hypervisor

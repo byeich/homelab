@@ -90,6 +90,12 @@ data:
             icon: pi-hole.png
 
     - Infrastructure:
+        - Grafana:
+            href: https://grafana.bkylab.net
+            description: Monitoring & dashboards
+            icon: grafana.png
+            namespace: monitoring
+            app: kube-prometheus-stack-grafana
         - Proxmox:
             href: https://10.0.0.10:8006
             description: Hypervisor

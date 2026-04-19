@@ -179,12 +179,31 @@ else
   warn "Skipped obsidian-secret. Apply it manually before ArgoCD syncs obsidian."
 fi
 
+# Monitoring (Alertmanager Telegram + Grafana admin)
+echo ""
+prompt "Enter the Telegram bot token for Alertmanager (or press Enter to skip):"
+read -r -s TELEGRAM_TOKEN
+if [[ -n "$TELEGRAM_TOKEN" ]]; then
+  prompt "Enter the Grafana admin password:"
+  read -r -s GRAFANA_PASS
+  kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+  seal_secret monitoring-secret monitoring \
+    "$REPO_ROOT/k8s/apps/monitoring/sealed-secret.yaml" \
+    --from-literal=telegram-bot-token="$TELEGRAM_TOKEN" \
+    --from-literal=admin-user=admin \
+    --from-literal=admin-password="$GRAFANA_PASS"
+  unset TELEGRAM_TOKEN GRAFANA_PASS
+else
+  warn "Skipped monitoring-secret. Apply it manually before ArgoCD syncs monitoring."
+fi
+
 section "Step 8: Apply sealed secrets"
 for f in \
   "$REPO_ROOT/k8s/apps/vaultwarden/sealed-secret.yaml" \
   "$REPO_ROOT/k8s/apps/cloudflared/sealed-secret.yaml" \
   "$REPO_ROOT/k8s/apps/immich/sealed-secret.yaml" \
-  "$REPO_ROOT/k8s/apps/obsidian/sealed-secret.yaml"; do
+  "$REPO_ROOT/k8s/apps/obsidian/sealed-secret.yaml" \
+  "$REPO_ROOT/k8s/apps/monitoring/sealed-secret.yaml"; do
   if grep -q "REPLACE_WITH_KUBESEAL_OUTPUT" "$f" 2>/dev/null; then
     warn "Skipping $f — not yet sealed (still has placeholder)."
   else
@@ -205,7 +224,8 @@ echo "  Next steps:"
 echo "    1. git add k8s/apps/vaultwarden/sealed-secret.yaml \\"
 echo "             k8s/apps/cloudflared/sealed-secret.yaml \\"
 echo "             k8s/apps/immich/sealed-secret.yaml \\"
-echo "             k8s/apps/obsidian/sealed-secret.yaml"
+echo "             k8s/apps/obsidian/sealed-secret.yaml \\"
+echo "             k8s/apps/monitoring/sealed-secret.yaml"
 echo "    2. git commit -m 'chore: seal secrets'"
 echo "    3. git push origin <branch>"
 echo "    4. ArgoCD will sync vaultwarden, immich, cloudflared automatically."

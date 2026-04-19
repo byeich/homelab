@@ -17,4 +17,6 @@ data:
         service: http://homepage.homepage.svc.cluster.local:3000
       - hostname: obsidian.bkylab.net
         service: http://obsidian.obsidian.svc.cluster.local:5984
+      - hostname: grafana.bkylab.net
+        service: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
       - service: http_status:404

@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: main
+    targetRevision: argocd-notifs
     path: k8s/apps/vaultwarden
   destination:
     server: https://kubernetes.default.svc

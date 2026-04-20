@@ -13,7 +13,7 @@ spec:
         valueFiles:
           - $values/k8s/bootstrap/monitoring/values.yaml
     - repoURL: https://github.com/byeich/homelab
-      targetRevision: add-workers
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: add-workers
+    targetRevision: main
     path: k8s/apps/immich
   destination:
     server: https://kubernetes.default.svc

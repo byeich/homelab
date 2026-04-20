@@ -1,0 +1,85 @@
+# kube-prometheus-stack Helm values
+# After first successful deploy, pin targetRevision in kube-prometheus-stack.yaml
+# to the version ArgoCD deployed (check: helm list -n monitoring)
+
+# Disable scrapers that don't work with k3s
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+    secrets:
+      - monitoring-secret
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname', 'namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: telegram
+      routes:
+        - receiver: 'null'
+          matchers:
+            - alertname =~ "Watchdog|InfoInhibitor"
+    inhibit_rules:
+      - source_matchers:
+          - severity = critical
+        target_matchers:
+          - severity = warning
+        equal: ['alertname', 'namespace', 'service']
+    receivers:
+      - name: 'null'
+      - name: telegram
+        telegram_configs:
+          - bot_token_file: /etc/alertmanager/secrets/monitoring-secret/telegram-bot-token
+            chat_id: 5421448913
+            parse_mode: HTML
+            send_resolved: true
+            message: |-
+              {{ range .Alerts }}
+              <b>[{{ .Status | toUpper }}] {{ .Labels.alertname }}</b>
+              Severity: {{ .Labels.severity }}
+              {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
+              {{ if .Annotations.description }}{{ .Annotations.description }}{{ end }}
+              {{ end }}
+
+grafana:
+  admin:
+    existingSecret: monitoring-secret
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence:
+    enabled: true
+    storageClassName: longhorn
+    size: 2Gi
+  "grafana.ini":
+    server:
+      root_url: https://grafana.bkylab.net

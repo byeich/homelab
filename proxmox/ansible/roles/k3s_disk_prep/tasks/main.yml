@@ -5,6 +5,7 @@
       - open-iscsi
       - nfs-common
       - util-linux
+      - cryptsetup
     state: present
 
 - name: Enable and start iscsid
@@ -12,6 +13,17 @@
     name: iscsid
     state: started
     enabled: true
+
+- name: Load dm_crypt kernel module
+  ansible.builtin.modprobe:
+    name: dm_crypt
+    state: present
+
+- name: Persist dm_crypt across reboots
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/longhorn.conf
+    content: "dm_crypt\n"
+    mode: "0644"
 
 - name: Check if /dev/sda is already formatted
   ansible.builtin.command: blkid /dev/sda

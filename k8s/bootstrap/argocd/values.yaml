@@ -40,7 +40,7 @@ notifications:
       - when: app.status.health.status == 'Degraded'
         send: [app-health-degraded]
 
-  subscriptions:
+  subscriptions: |
     - recipients:
         - telegram:5421448913
       triggers:

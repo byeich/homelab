@@ -4,9 +4,9 @@ metadata:
   name: obsidian
   namespace: argocd
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: "-5421448913"
-    notifications.argoproj.io/subscribe.on-sync-failed.telegram: "-5421448913"
-    notifications.argoproj.io/subscribe.on-health-degraded.telegram: "-5421448913"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: "-5248737533"
+    notifications.argoproj.io/subscribe.on-sync-failed.telegram: "-5248737533"
+    notifications.argoproj.io/subscribe.on-health-degraded.telegram: "-5248737533"
 spec:
   project: default
   source:

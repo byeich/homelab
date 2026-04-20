@@ -12,7 +12,6 @@ kubeScheduler:
 kubeProxy:
   enabled: false
 
-# Prometheus
 prometheus:
   prometheusSpec:
     retention: 30d
@@ -25,7 +24,6 @@ prometheus:
             requests:
               storage: 20Gi
 
-# Alertmanager
 alertmanager:
   alertmanagerSpec:
     storage:
@@ -73,7 +71,6 @@ alertmanager:
               {{ if .Annotations.description }}{{ .Annotations.description }}{{ end }}
               {{ end }}
 
-# Grafana
 grafana:
   admin:
     existingSecret: monitoring-secret

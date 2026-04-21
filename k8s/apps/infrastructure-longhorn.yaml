@@ -17,7 +17,7 @@ spec:
         valueFiles:
           - $values/k8s/infrastructure/longhorn/values.yaml
     - repoURL: https://github.com/byeich/homelab
-      targetRevision: argocd-notifs
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

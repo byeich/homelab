@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: argocd-notifs
+    targetRevision: main
     path: k8s/infrastructure/longhorn
     directory:
       exclude: "values.yaml"

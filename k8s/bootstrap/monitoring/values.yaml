@@ -60,7 +60,7 @@ alertmanager:
       - name: telegram
         telegram_configs:
           - bot_token_file: /etc/alertmanager/secrets/monitoring-secret/telegram-bot-token
-            chat_id: 5421448913
+            chat_id: -5248737533
             parse_mode: HTML
             send_resolved: true
             message: |-

@@ -22,8 +22,9 @@ All infrastructure is managed from `proxmox/tofu`.
 | LXC: `pihole` | 303 | Pi-hole DNS container |
 | VM: `k3s-control-1/2/3` | 310–312 | k3s control plane nodes |
 | VM: `k3s-worker-1/2/3` | 320–322 | k3s worker nodes |
+| VM: `k3s-worker-4/5` | 323–324 | k3s worker nodes, 100GB Longhorn disks |
 
-> VMs clone from Proxmox template ID 9000 — must be a Debian cloud-init image with `qemu-guest-agent` installed.
+> VMs clone from Proxmox template ID 9000 or 9001 — must be a Debian cloud-init image with `qemu-guest-agent` installed.
 
 ## Ansible Playbooks
 
@@ -97,6 +98,8 @@ All Kubernetes workloads are managed via ArgoCD using the App-of-Apps pattern.
 - Bootstrap manifests: `k8s/bootstrap/argocd/`
 - Infrastructure configs (Longhorn recurring jobs, etc.): `k8s/infrastructure/`
 
+ArgoCD notifications are configured in `k8s/bootstrap/argocd/values.yaml`. Each app is annotated to subscribe to sync and health triggers, which send to a Telegram group via a configured bot.
+
 **Services managed:**
 
 | App | Namespace | Notes |
@@ -106,6 +109,7 @@ All Kubernetes workloads are managed via ArgoCD using the App-of-Apps pattern.
 | Homepage | `homepage` | Dashboard at `home.bkylab.net`, Cloudflare Access protected |
 | Obsidian | `obsidian` | CouchDB backend for Obsidian notes sync at `obsidian.bkylab.net` |
 | Cloudflared | `cloudflared` | Cloudflare tunnel — routes all `*.bkylab.net` public services |
+| kube-prometheus-stack | `monitoring` | Prometheus + Grafana + Alertmanager. Grafana at `grafana.bkylab.net`. Alerts → Telegram via Alertmanager |
 | Longhorn | `longhorn-system` | Distributed block storage, daily backups + weekly snapshots |
 | Sealed Secrets | `kube-system` | Encrypts secrets for safe git storage |
 | Reloader | `reloader` | Auto-restarts pods when their ConfigMap or Secret changes |

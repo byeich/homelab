@@ -38,12 +38,14 @@ All infrastructure is managed from `proxmox/tofu`.
 
 `tofu apply` also generates `proxmox/ansible/inventory.ini` from the live VM state.
 
+**State:** Local state is gitignored and backed up to a TrueNAS server. In a production environment this would be replaced with a remote backend (Terraform Cloud or S3+DynamoDB) for state locking and team access.
+
 **What gets created:**
 
 | Resource | IDs | Description |
 |---|---|---|
 | LXC: `pihole` | 303 | Pi-hole DNS container |
-| VM: `k3s-control-1/2/3` | 310–312 | k3s control plane nodes |
+| VM: `k3s-control-1/2/3` | 310–312 | k3s control plane nodes (currently hosted on 2 physical nodes. I plan to add more nodes in the future for better high availability) |
 | VM: `k3s-worker-1/2/3` | 320–322 | k3s worker nodes |
 | VM: `k3s-worker-4/5` | 323–324 | k3s worker nodes, 100GB Longhorn disks |
 

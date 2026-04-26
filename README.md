@@ -1,6 +1,29 @@
 # homelab
 Repo for IaC/configuration of homelab
 
+## Prerequisites
+
+On a fresh machine, generate the SSH key pairs used for provisioning before running anything else:
+
+```bash
+./scripts/generate-keys.sh
+```
+
+This creates `~/.ssh/homelab` (LXC containers) and `~/.ssh/k3s_cluster` (k3s VMs) if they don't already exist.
+
+Proxmox must also have VM templates available (IDs 9000 and 9001) — Debian cloud-init images with `qemu-guest-agent` installed.
+
+## Full Setup Flow
+
+```bash
+cd proxmox/tofu && tofu apply                        # provision VMs + LXC
+cd proxmox/ansible
+./run-playbook.sh playbooks/k3s.yml                  # install k3s on all nodes
+./run-playbook.sh playbooks/k3s_disk_prep.yml        # prep Longhorn disks on workers
+./scripts/bootstrap.sh                               # fresh: seal secrets + install infra
+# or: ./run-playbook.sh playbooks/k3s_bootstrap.yml  # rebuild: install infra, apply sealed secrets from git
+git push origin <branch>                             # ArgoCD syncs all apps
+```
 
 ## OpenTofu
 
@@ -23,8 +46,6 @@ All infrastructure is managed from `proxmox/tofu`.
 | VM: `k3s-control-1/2/3` | 310–312 | k3s control plane nodes |
 | VM: `k3s-worker-1/2/3` | 320–322 | k3s worker nodes |
 | VM: `k3s-worker-4/5` | 323–324 | k3s worker nodes, 100GB Longhorn disks |
-
-> VMs clone from Proxmox template ID 9000 or 9001 — must be a Debian cloud-init image with `qemu-guest-agent` installed.
 
 ## Ansible Playbooks
 
@@ -70,16 +91,6 @@ After `k3s.yml` has run, one of two bootstrap paths finishes the cluster setup:
 **Rebuild (sealed secrets already committed to git):** Run the Ansible playbook instead — no interactive prompts needed.
 ```bash
 ./run-playbook.sh playbooks/k3s_bootstrap.yml --private-key ~/.ssh/k3s_cluster
-```
-
-**Full rebuild flow:**
-```bash
-tofu apply                                           # provision VMs
-./run-playbook.sh playbooks/k3s.yml                  # install k3s on all nodes
-./run-playbook.sh playbooks/k3s_disk_prep.yml        # prep Longhorn disks on workers
-./scripts/bootstrap.sh                               # fresh: seal secrets + install infra
-# or: ./run-playbook.sh playbooks/k3s_bootstrap.yml  # rebuild: install infra, apply sealed secrets from git
-git push origin <branch>                             # ArgoCD syncs all apps
 ```
 
 > **Why Longhorn is installed via Helm and not ArgoCD:** Longhorn's pre-upgrade Helm hook requires a ServiceAccount that doesn't exist until the chart installs it, which fails on a fresh cluster deploy. The bootstrap script installs it directly and ArgoCD adopts and manages it.

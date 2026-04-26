@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "argocd": {
+    "fileMatch": ["k8s/apps/[^/]+\\.yaml$", "k8s/bootstrap/.+\\.yaml$"]
+  },
+  "kubernetes": {
+    "fileMatch": ["k8s/apps/.+/.+\\.yaml$", "k8s/infrastructure/.+/.+\\.yaml$"]
+  },
+  "regexManagers": [
+    {
+      "fileMatch": ["^scripts/bootstrap\\.sh$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) registryUrl=(?<registryUrl>\\S+)\\n\\w+_VERSION=\"(?<currentValue>[^\"]+)\""
+      ]
+    },
+    {
+      "fileMatch": ["^\\.github/workflows/.+\\.yml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s+\\w+_VERSION: \"(?<currentValue>[^\"]+)\""
+      ]
+    }
+  ]
+}

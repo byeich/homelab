@@ -1,0 +1,59 @@
+name: CI
+
+on: push
+
+jobs:
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install yamllint
+      - run: yamllint -c .yamllint.yaml k8s/ proxmox/ansible/
+
+  tofu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+      - run: tofu init
+        working-directory: proxmox/tofu
+      - run: tofu validate
+        working-directory: proxmox/tofu
+      - run: tofu fmt -check -recursive
+        working-directory: proxmox/tofu
+
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install ansible ansible-lint
+      - name: Install Ansible collections
+        run: ansible-galaxy collection install -r proxmox/ansible/requirements.yml
+      - name: Prepare environment
+        run: |
+          echo "dummy" > proxmox/ansible/.vault_pass
+          cp proxmox/ansible/inventory.ini.example proxmox/ansible/inventory.ini
+      - run: ansible-lint
+        working-directory: proxmox/ansible
+
+  kubeconform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install kubeconform
+        env:
+          # renovate: datasource=github-releases depName=yannh/kubeconform
+          KUBECONFORM_VERSION: "v0.7.0"
+        run: |
+          curl -sLo kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+      - name: Validate Kubernetes manifests
+        run: |
+          kubeconform \
+            -strict \
+            -ignore-missing-schemas \
+            -ignore-filename-pattern '.*values\.yaml' \
+            -summary \
+            k8s/

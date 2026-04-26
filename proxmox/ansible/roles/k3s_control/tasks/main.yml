@@ -1,17 +1,25 @@
 - name: Check if k3s is already installed
   ansible.builtin.stat:
     path: /usr/local/bin/k3s
-  register: k3s_bin
+  register: k3s_control_bin
 
-- name: Install k3s server (init node)
+# curl|sh is a supply-chain risk in production (no signature verification before execution).
+# Acceptable here because INSTALL_K3S_VERSION pins the exact release, and the k3s installer
+# is maintained by Rancher/SUSE with a strong release process. For production, download the
+# installer, verify its SHA256 against https://github.com/k3s-io/k3s/releases, then execute.
+- name: Install k3s server (init node)  # noqa: command-instead-of-module
   ansible.builtin.shell: |
+    set -euo pipefail
     curl -sfL https://get.k3s.io | K3S_TOKEN={{ k3s_token }} sh -s - server --cluster-init
+  args:
+    executable: /bin/bash
   environment:
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
   when:
-    - not k3s_bin.stat.exists
+    - not k3s_control_bin.stat.exists
     - inventory_hostname == groups['k3s-control'][0]
-  notify: restart k3s
+  changed_when: true
+  notify: Restart k3s
 
 - name: Wait for k3s token file to exist (init node)
   ansible.builtin.wait_for:
@@ -19,16 +27,20 @@
     timeout: 120
   when: inventory_hostname == groups['k3s-control'][0]
 
-- name: Install k3s server (join additional control nodes)
+- name: Install k3s server (join additional control nodes)  # noqa: command-instead-of-module
   ansible.builtin.shell: |
+    set -euo pipefail
     curl -sfL https://get.k3s.io | K3S_TOKEN={{ k3s_token }} sh -s - server \
       --server https://{{ hostvars[groups['k3s-control'][0]]['ansible_host'] }}:{{ k3s_api_port }}
+  args:
+    executable: /bin/bash
   environment:
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
   when:
-    - not k3s_bin.stat.exists
+    - not k3s_control_bin.stat.exists
     - inventory_hostname != groups['k3s-control'][0]
-  notify: restart k3s
+  changed_when: true
+  notify: Restart k3s
 
 - name: Ensure k3s service is running and enabled
   ansible.builtin.service:

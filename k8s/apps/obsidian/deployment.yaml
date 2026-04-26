@@ -20,7 +20,7 @@ spec:
         fsGroup: 5984
       containers:
         - name: couchdb
-          image: couchdb:3
+          image: couchdb:3.5.1
           resources:
             requests:
               cpu: 10m
@@ -43,6 +43,22 @@ spec:
                   key: admin-password
             - name: COUCHDB_SINGLE_NODE
               value: "true"
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - curl -sf -u ${COUCHDB_USER}:${COUCHDB_PASSWORD} http://localhost:5984/_up
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - curl -sf -u ${COUCHDB_USER}:${COUCHDB_PASSWORD} http://localhost:5984/_up
+            initialDelaySeconds: 15
+            periodSeconds: 10
           lifecycle:
             postStart:
               exec:

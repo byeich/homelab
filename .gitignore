@@ -1,20 +1,21 @@
-###### Tofu ######
+# Tofu 
 .terraform/
 *.tfvars
 *.tfstate
 *.tfstate.backup
 
-###### Ansible ######
+# Ansible
 *.vault
 vault.yml
 inventory.ini
 .vault_pass
 
-###### Secrets ######
+# Secrets
 secrets-local/
 *.plaintext.yaml
 *.json
+!renovate.json
 
-###### Other ######
+# Other
 .vscode/
 .DS_Store

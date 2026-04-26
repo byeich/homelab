@@ -1,0 +1,5 @@
+dns_server: "10.0.0.53"
+
+# k3s cluster config — override k3s_token via vault
+k3s_version: ""
+k3s_api_port: 6443

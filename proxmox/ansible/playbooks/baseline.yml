@@ -2,11 +2,11 @@
   hosts: lxc_host
   become: true
   tasks:
-    - name: apt | update
+    - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
-    - name: apt | install packages
+    - name: Install base packages
       ansible.builtin.apt:
         name:
           - ca-certificates
@@ -16,9 +16,8 @@
           - git
           - sudo
         state: present
-    - name: service | Start SSH
+    - name: Start SSH service
       ansible.builtin.service:
         name: ssh
         state: started
         enabled: true
-    

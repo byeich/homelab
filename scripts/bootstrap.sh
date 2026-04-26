@@ -13,8 +13,12 @@ CONTROL_NODE_IP="${K3S_CONTROL_IP:-10.0.0.60}"
 SSH_KEY="${K3S_SSH_KEY:-$HOME/.ssh/k3s_cluster}"
 SSH_USER="debian"
 
-ARGOCD_VERSION="7.x"
-LONGHORN_VERSION="1.7.x"
+# renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
+ARGOCD_VERSION="7.9.1"
+# renovate: datasource=helm depName=longhorn registryUrl=https://charts.longhorn.io
+LONGHORN_VERSION="1.7.3"
+# renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami-labs.github.io/sealed-secrets
+SEALED_SECRETS_VERSION="2.18.5"
 TUNNEL_ID="a1c6f9ec-b941-4595-b755-3d43f45a2c1b"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
@@ -83,6 +87,7 @@ info "Longhorn installed."
 section "Step 6: Install Sealed Secrets controller"
 helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
   --namespace kube-system \
+  --version "$SEALED_SECRETS_VERSION" \
   --set fullnameOverride=sealed-secrets-controller \
   --wait
 info "Sealed Secrets controller installed."

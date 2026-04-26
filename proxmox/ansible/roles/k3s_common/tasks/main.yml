@@ -2,11 +2,11 @@
   ansible.builtin.copy:
     dest: /etc/resolv.conf
     content: |
-      nameserver 10.0.0.53
+      nameserver {{ dns_server }}
       nameserver 1.1.1.1
     mode: "0644"
 
-- name: apt | update cache and install base packages
+- name: Update apt cache and install base packages
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 3600
@@ -57,4 +57,4 @@
       net.bridge.bridge-nf-call-ip6tables = 1
       net.ipv4.ip_forward                 = 1
     mode: "0644"
-  notify: reload sysctl
+  notify: Reload sysctl

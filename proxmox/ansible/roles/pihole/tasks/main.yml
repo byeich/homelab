@@ -46,7 +46,7 @@
     name: systemd-resolved
     state: stopped
     enabled: false
-  ignore_errors: true
+  failed_when: false
 
 - name: Run Pi-hole unattended installer (first install)
   ansible.builtin.shell: |
@@ -58,6 +58,7 @@
     PIHOLE_SKIP_OS_CHECK: "true"
     DEBIAN_FRONTEND: "noninteractive"
   when: not pihole_bin.stat.exists
+  changed_when: true
 
 - name: Set Pi-hole web password
   ansible.builtin.command: "pihole -a -p {{ pihole_web_password }}"
@@ -78,7 +79,7 @@
 - name: Check if lighttpd systemd unit exists
   ansible.builtin.stat:
     path: /lib/systemd/system/lighttpd.service
-  register: lighttpd_unit
+  register: pihole_lighttpd_unit
 
 - name: Ensure lighttpd is enabled and running (web UI)
   ansible.builtin.service:
@@ -87,7 +88,7 @@
     enabled: true
   when:
     - pihole_install_web | default(true) | bool
-    - lighttpd_unit.stat.exists
+    - pihole_lighttpd_unit.stat.exists
 
 - name: Print useful URLs
   ansible.builtin.debug:

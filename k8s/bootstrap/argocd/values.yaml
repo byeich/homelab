@@ -39,4 +39,3 @@ notifications:
     trigger.on-health-degraded: |
       - when: app.status.health.status == 'Degraded'
         send: [app-health-degraded]
-

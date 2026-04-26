@@ -19,7 +19,7 @@ spec:
           image: ghcr.io/immich-app/immich-server:v2.6.3
           resources:
             requests:
-              cpu: 500m
+              cpu: 750m
               memory: 512Mi
             limits:
               cpu: 2000m

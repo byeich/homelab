@@ -1,44 +1,44 @@
 locals {
-    gateway    = "10.0.0.1"
-    dns_server = "10.0.0.53"
+  gateway    = "10.0.0.1"
+  dns_server = "10.0.0.53"
 
-    defaults = {
-        node        = var.node_name
-        bridge      = var.network_bridge
-        rootds      = var.rootfs_datastore
-        tmpl_id     = proxmox_virtual_environment_download_file.debian_lxc.id
-        vm_node     = var.vm_node_name
-        vm_bridge   = var.vm_network_bridge
-        vm_rootds   = var.rootfs_datastore
-    }
+  defaults = {
+    node      = var.node_name
+    bridge    = var.network_bridge
+    rootds    = var.rootfs_datastore
+    tmpl_id   = proxmox_virtual_environment_download_file.debian_lxc.id
+    vm_node   = var.vm_node_name
+    vm_bridge = var.vm_network_bridge
+    vm_rootds = var.rootfs_datastore
+  }
 
-    containers = {
-        pihole   = { vm_id = 303, memory = 512, cores = 1 , ip = "10.0.0.53/24"}
-    }
+  containers = {
+    pihole = { vm_id = 303, memory = 512, cores = 1, ip = "10.0.0.53/24" }
+  }
 
-    # K3s VMs
-    vms = {
-        # Control Nodes
-        k3s-control-1 = { vm_id = 310, memory = 4096, cores = 2, ip = "10.0.0.60/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
-        k3s-control-2 = { vm_id = 311, memory = 4096, cores = 2, ip = "10.0.0.61/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
-        k3s-control-3 = { vm_id = 312, memory = 4096, cores = 2, ip = "10.0.0.62/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+  # K3s VMs
+  vms = {
+    # Control Nodes
+    k3s-control-1 = { vm_id = 310, memory = 4096, cores = 2, ip = "10.0.0.60/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+    k3s-control-2 = { vm_id = 311, memory = 4096, cores = 2, ip = "10.0.0.61/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+    k3s-control-3 = { vm_id = 312, memory = 4096, cores = 2, ip = "10.0.0.62/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
 
-        # Worker Nodes
-        k3s-worker-1  = { vm_id = 320, memory = 4096, cores = 2, ip = "10.0.0.70/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
-        k3s-worker-2  = { vm_id = 321, memory = 4096, cores = 2, ip = "10.0.0.71/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
-        k3s-worker-3  = { vm_id = 322, memory = 4096, cores = 2, ip = "10.0.0.72/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
-        k3s-worker-4  = { vm_id = 323, memory = 4096, cores = 2, ip = "10.0.0.73/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
-        k3s-worker-5  = { vm_id = 324, memory = 4096, cores = 2, ip = "10.0.0.74/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
-    }
+    # Worker Nodes
+    k3s-worker-1 = { vm_id = 320, memory = 4096, cores = 2, ip = "10.0.0.70/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+    k3s-worker-2 = { vm_id = 321, memory = 4096, cores = 2, ip = "10.0.0.71/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+    k3s-worker-3 = { vm_id = 322, memory = 4096, cores = 2, ip = "10.0.0.72/24", node = "homelab2", longhorn_disk_size = 50, template_id = 9000 }
+    k3s-worker-4 = { vm_id = 323, memory = 4096, cores = 2, ip = "10.0.0.73/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
+    k3s-worker-5 = { vm_id = 324, memory = 4096, cores = 2, ip = "10.0.0.74/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
+  }
 }
 
 # Download LXC Template
 resource "proxmox_virtual_environment_download_file" "debian_lxc" {
-    node_name = var.node_name
-    content_type = "vztmpl"
-    datastore_id = var.template_datastore
+  node_name    = var.node_name
+  content_type = "vztmpl"
+  datastore_id = var.template_datastore
 
-    url = "http://download.proxmox.com/images/system/debian-12-standard_12.2-1_amd64.tar.zst"
+  url = "http://download.proxmox.com/images/system/debian-12-standard_12.2-1_amd64.tar.zst"
 }
 
 # Create LXC containers
@@ -56,7 +56,7 @@ resource "proxmox_virtual_environment_container" "svc" {
     hostname = each.key
 
     ip_config {
-      ipv4 { 
+      ipv4 {
         address = each.value.ip
         gateway = local.gateway
       }

@@ -17,8 +17,8 @@ variable "virtual_environment_is_insecure" {
 }
 
 variable "node_name" {
-    type = string
-    description = "Target Proxmox Node"
+  type        = string
+  description = "Target Proxmox Node"
 }
 
 variable "template_datastore" {
@@ -64,8 +64,8 @@ variable "vm_virtual_environment_is_insecure" {
 }
 
 variable "vm_node_name" {
-    type = string
-    description = "Target Proxmox Node"
+  type        = string
+  description = "Target Proxmox Node"
 }
 
 variable "vm_template_datastore" {

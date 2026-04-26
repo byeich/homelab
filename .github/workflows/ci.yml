@@ -35,3 +35,25 @@ jobs:
           cp proxmox/ansible/inventory.ini.example proxmox/ansible/inventory.ini
       - run: ansible-lint
         working-directory: proxmox/ansible
+
+  kubeconform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install kubeconform
+        env:
+          # renovate: datasource=github-releases depName=yannh/kubeconform
+          KUBECONFORM_VERSION: "v0.7.0"
+        run: |
+          curl -sLo kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+      - name: Validate Kubernetes manifests
+        run: |
+          kubeconform \
+            -strict \
+            -ignore-missing-schemas \
+            -ignore-filename-pattern '.*values\.yaml' \
+            -summary \
+            k8s/

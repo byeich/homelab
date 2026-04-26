@@ -27,6 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: pip install ansible ansible-lint
+      - name: Install Ansible collections
+        run: ansible-galaxy collection install -r proxmox/ansible/requirements.yml
       - name: Prepare environment
         run: |
           echo "dummy" > proxmox/ansible/.vault_pass

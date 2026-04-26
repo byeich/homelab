@@ -1,4 +1,4 @@
-- name: restart k3s-agent
+- name: Restart k3s-agent
   ansible.builtin.service:
     name: k3s-agent
     state: restarted

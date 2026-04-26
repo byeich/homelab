@@ -15,7 +15,7 @@
     enabled: true
 
 - name: Load dm_crypt kernel module
-  ansible.builtin.modprobe:
+  community.general.modprobe:
     name: dm_crypt
     state: present
 
@@ -27,18 +27,18 @@
 
 - name: Check if /dev/sda is already formatted
   ansible.builtin.command: blkid /dev/sda
-  register: sdb_blkid
+  register: k3s_disk_prep_sdb_blkid
   changed_when: false
   failed_when: false
 
 - name: Format /dev/sda as ext4
   ansible.builtin.command: mkfs.ext4 /dev/sda
-  when: sdb_blkid.rc != 0
+  when: k3s_disk_prep_sdb_blkid.rc != 0
   changed_when: true
 
 - name: Get UUID of /dev/sda
   ansible.builtin.command: blkid -s UUID -o value /dev/sda
-  register: disk_uuid
+  register: k3s_disk_prep_disk_uuid
   changed_when: false
 
 - name: Create Longhorn data directory
@@ -47,20 +47,12 @@
     state: directory
     mode: "0750"
 
-- name: Add disk to fstab by UUID
-  ansible.builtin.lineinfile:
-    path: /etc/fstab
-    regexp: "longhorn"
-    line: "UUID={{ disk_uuid.stdout }} /var/lib/longhorn ext4 defaults 0 2"
-    state: present
-
-- name: Check if /var/lib/longhorn is already mounted
-  ansible.builtin.command: mountpoint -q /var/lib/longhorn
-  register: mount_check
-  changed_when: false
-  failed_when: false
-
-- name: Mount /var/lib/longhorn
-  ansible.builtin.command: mount /var/lib/longhorn
-  when: mount_check.rc != 0
-  changed_when: true
+- name: Mount /var/lib/longhorn (and persist in fstab)
+  ansible.posix.mount:
+    path: /var/lib/longhorn
+    src: "UUID={{ k3s_disk_prep_disk_uuid.stdout }}"
+    fstype: ext4
+    opts: defaults
+    dump: "0"
+    passno: "2"
+    state: mounted

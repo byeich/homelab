@@ -21,6 +21,13 @@ spec:
       containers:
         - name: couchdb
           image: couchdb:3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 96Mi
+            limits:
+              cpu: 100m
+              memory: 192Mi
           ports:
             - containerPort: 5984
           env:

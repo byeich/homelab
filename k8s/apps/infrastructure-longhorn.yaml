@@ -17,7 +17,7 @@ spec:
         valueFiles:
           - $values/k8s/infrastructure/longhorn/values.yaml
     - repoURL: https://github.com/byeich/homelab
-      targetRevision: main
+      targetRevision: cleanup
       ref: values
   destination:
     server: https://kubernetes.default.svc

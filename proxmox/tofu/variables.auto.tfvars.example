@@ -5,15 +5,15 @@ virtual_environment_is_insecure = true
 node_name          = "name-of-node"
 template_datastore = "local-datastore-name"
 rootfs_datastore   = "lvm-datastore-name"
-network_bridge     = "vmbr0"
-container_password = "temp-password"
+network_bridge          = "vmbr0"
+lxc_ssh_public_key_path = "~/.ssh/homelab.pub"
 
 vm_virtual_environment_endpoint    = "https://ip-of-host:port"
 vm_virtual_environment_api_token   = "user@pam!tag=-SECRET-VALUE"
 vm_virtual_environment_is_insecure = true
 
-vm_node_name          = "name-of-node"
-vm_template_datastore = "local-datastore-name"
-vm_rootfs_datastore   = "lvm-datastore-name"
-vm_network_bridge     = "vmbr0"
-vm_password = "temp-password"
+vm_node_name            = "name-of-node"
+vm_template_datastore   = "local-datastore-name"
+vm_rootfs_datastore     = "lvm-datastore-name"
+vm_network_bridge       = "vmbr0"
+vm_ssh_public_key_path  = "~/.ssh/k3s_cluster.pub"

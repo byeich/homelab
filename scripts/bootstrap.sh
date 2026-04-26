@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
-# bootstrap.sh — Full cluster setup from scratch on MacOS.
+# bootstrap.sh — Full cluster setup on MacOS.
 #
-# Run this AFTER k3s nodes are provisioned and k3s.yml Ansible playbook has run.
-#
-# What this does:
-#   1. Installs Mac prerequisites (helm, kubectl, kubeseal) via Homebrew
-#   2. Copies kubeconfig from the first k3s control node
-#   3. Walks you through sealing secrets with kubeseal
-#   4. Installs ArgoCD, Longhorn, Sealed Secrets via helm
-#   5. Applies sealed secrets and kicks off ArgoCD App-of-Apps
-#
+# Run this after k3s nodes are provisioned and k3s.yml Ansible playbook has run.
 # Usage:
 #   chmod +x scripts/bootstrap.sh
 #   ./scripts/bootstrap.sh
@@ -23,6 +15,7 @@ SSH_USER="debian"
 
 ARGOCD_VERSION="7.x"
 LONGHORN_VERSION="1.7.x"
+TUNNEL_ID="a1c6f9ec-b941-4595-b755-3d43f45a2c1b"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info()    { echo -e "${GREEN}[INFO]${NC} $*"; }
@@ -79,7 +72,7 @@ helm upgrade --install argocd argo/argo-cd \
   --wait
 info "ArgoCD installed."
 
-section "Step 5: Install Longhorn (via helm, not ArgoCD)"
+section "Step 5: Install Longhorn via Helm"
 kubectl create namespace longhorn-system --dry-run=client -o yaml | kubectl apply -f -
 helm upgrade --install longhorn longhorn/longhorn \
   --namespace longhorn-system \
@@ -96,7 +89,7 @@ info "Sealed Secrets controller installed."
 
 section "Step 7: Seal secrets with kubeseal"
 warn "You will now be prompted for secret values."
-warn "These are NEVER written to disk — they are piped directly through kubeseal."
+warn "These are not written to disk, but are piped directly through kubeseal."
 warn "The output (encrypted SealedSecret) will be written to git-tracked files."
 
 # Helper: seal a secret and write to file
@@ -130,7 +123,7 @@ fi
 
 # Cloudflared
 echo ""
-TUNNEL_JSON="$REPO_ROOT/a1c6f9ec-b941-4595-b755-3d43f45a2c1b.json"
+TUNNEL_JSON="$REPO_ROOT/$TUNNEL_ID.json"
 if [[ -f "$TUNNEL_JSON" ]]; then
   kubectl create namespace cloudflared --dry-run=client -o yaml | kubectl apply -f -
   seal_secret cloudflared-creds cloudflared \
@@ -179,7 +172,7 @@ else
   warn "Skipped obsidian-secret. Apply it manually before ArgoCD syncs obsidian."
 fi
 
-# Monitoring (Alertmanager Telegram + Grafana admin)
+# Monitoring
 echo ""
 prompt "Enter the Telegram bot token for Alertmanager (or press Enter to skip):"
 read -r -s TELEGRAM_TOKEN
@@ -194,7 +187,7 @@ if [[ -n "$TELEGRAM_TOKEN" ]]; then
     --from-literal=admin-password="$GRAFANA_PASS"
   unset GRAFANA_PASS
 
-  # ArgoCD notifications — same Telegram bot token
+  # ArgoCD notifications with the same Telegram bot token
   seal_secret argocd-notifications-secret argocd \
     "$REPO_ROOT/k8s/bootstrap/argocd/sealed-secret.yaml" \
     --from-literal=telegram-token="$TELEGRAM_TOKEN"

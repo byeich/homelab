@@ -16,6 +16,13 @@ spec:
       containers:
         - name: machine-learning
           image: ghcr.io/immich-app/immich-machine-learning:v2.6.3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 256Mi
+            limits:
+              cpu: 750m
+              memory: 512Mi
           envFrom:
             - configMapRef:
                 name: immich-config

@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: main
+    targetRevision: cleanup
     path: k8s/apps
   destination:
     server: https://kubernetes.default.svc

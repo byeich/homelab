@@ -1,7 +1,3 @@
-# kube-prometheus-stack Helm values
-# After first successful deploy, pin targetRevision in kube-prometheus-stack.yaml
-# to the version ArgoCD deployed (check: helm list -n monitoring)
-
 # Disable scrapers that don't work with k3s
 kubeEtcd:
   enabled: false

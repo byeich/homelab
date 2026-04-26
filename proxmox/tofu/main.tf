@@ -29,7 +29,7 @@ locals {
     }
 }
 
-###### Download LXC Template ######
+# Download LXC Template
 resource "proxmox_virtual_environment_download_file" "debian_lxc" {
     node_name = var.node_name
     content_type = "vztmpl"
@@ -38,7 +38,7 @@ resource "proxmox_virtual_environment_download_file" "debian_lxc" {
     url = "http://download.proxmox.com/images/system/debian-12-standard_12.2-1_amd64.tar.zst"
 }
 
-###### Create LXC containers ######
+# Create LXC containers
 resource "proxmox_virtual_environment_container" "svc" {
   for_each  = local.containers
   node_name = local.defaults.node
@@ -59,7 +59,7 @@ resource "proxmox_virtual_environment_container" "svc" {
       }
     }
 
-    user_account { keys = [trimspace(file("~/.ssh/id_ed25519.pub"))] }
+    user_account { keys = [trimspace(file(var.lxc_ssh_public_key_path))] }
   }
 
   network_interface {
@@ -79,7 +79,7 @@ resource "proxmox_virtual_environment_container" "svc" {
   started      = true
 }
 
-###### Create K3s VMs ######
+# Create K3s VMs
 resource "proxmox_virtual_environment_vm" "k3s_vms" {
   for_each  = local.vms
   node_name = each.value.node
@@ -113,7 +113,7 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
 
     user_account {
       username = "debian"
-      keys     = [trimspace(file("~/.ssh/k3s_cluster.pub"))]
+      keys     = [trimspace(file(var.vm_ssh_public_key_path))]
     }
   }
 
@@ -156,7 +156,7 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
   started = true
 }
 
-###### Ansible Inventory ######
+# Generate Ansible inventory
 locals {
   k3s_control_hosts = {
     for name, vm in proxmox_virtual_environment_vm.k3s_vms :

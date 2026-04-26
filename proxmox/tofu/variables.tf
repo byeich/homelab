@@ -41,14 +41,13 @@ variable "network_bridge" {
   default     = "vmbr0"
 }
 
-variable "container_password" {
+variable "lxc_ssh_public_key_path" {
   type        = string
-  description = "Password for test container"
-  sensitive   = true
+  description = "Path to SSH public key for LXC containers"
+  default     = "~/.ssh/homelab.pub"
 }
 
-################################ VMs ################################
-######## Connection to Proxmox ########
+# VMs
 variable "vm_virtual_environment_endpoint" {
   type        = string
   description = "Proxmox API endpoint (https://ip-of-host:port/)"
@@ -66,7 +65,6 @@ variable "vm_virtual_environment_is_insecure" {
   default     = true
 }
 
-######## Proxmox Settings/Configuration ########
 variable "vm_node_name" {
     type = string
     description = "Target Proxmox Node"
@@ -90,8 +88,8 @@ variable "vm_network_bridge" {
   default     = "vmbr0"
 }
 
-variable "vm_password" {
+variable "vm_ssh_public_key_path" {
   type        = string
-  description = "Password for test vm"
-  sensitive   = true
+  description = "Path to SSH public key for k3s VMs"
+  default     = "~/.ssh/k3s_cluster.pub"
 }

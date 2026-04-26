@@ -47,6 +47,12 @@ spec:
               port: 2283
             initialDelaySeconds: 60
             periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: 2283
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
         - name: photos
           persistentVolumeClaim:

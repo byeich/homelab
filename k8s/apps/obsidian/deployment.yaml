@@ -20,7 +20,7 @@ spec:
         fsGroup: 5984
       containers:
         - name: couchdb
-          image: couchdb:3
+          image: couchdb:3.5.1
           resources:
             requests:
               cpu: 10m
@@ -43,6 +43,18 @@ spec:
                   key: admin-password
             - name: COUCHDB_SINGLE_NODE
               value: "true"
+          livenessProbe:
+            httpGet:
+              path: /_up
+              port: 5984
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /_up
+              port: 5984
+            initialDelaySeconds: 15
+            periodSeconds: 10
           lifecycle:
             postStart:
               exec:

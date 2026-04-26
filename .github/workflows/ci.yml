@@ -1,0 +1,35 @@
+name: CI
+
+on: push
+
+jobs:
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install yamllint
+      - run: yamllint -c .yamllint.yaml k8s/ proxmox/ansible/
+
+  tofu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+      - run: tofu init
+        working-directory: proxmox/tofu
+      - run: tofu validate
+        working-directory: proxmox/tofu
+      - run: tofu fmt -check -recursive
+        working-directory: proxmox/tofu
+
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install ansible ansible-lint
+      - name: Prepare environment
+        run: |
+          echo "dummy" > proxmox/ansible/.vault_pass
+          cp proxmox/ansible/inventory.ini.example proxmox/ansible/inventory.ini
+      - run: ansible-lint
+        working-directory: proxmox/ansible

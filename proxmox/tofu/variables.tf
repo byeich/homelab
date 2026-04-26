@@ -1,5 +1,4 @@
-################################ Containers ################################
-######## Connection to Proxmox ########
+# LXC containers
 variable "virtual_environment_endpoint" {
   type        = string
   description = "Proxmox API endpoint (https://ip-of-host:port/)"
@@ -17,7 +16,6 @@ variable "virtual_environment_is_insecure" {
   default     = true
 }
 
-######## Proxmox Settings/Configuration ########
 variable "node_name" {
     type = string
     description = "Target Proxmox Node"

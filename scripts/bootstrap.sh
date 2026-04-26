@@ -13,8 +13,11 @@ CONTROL_NODE_IP="${K3S_CONTROL_IP:-10.0.0.60}"
 SSH_KEY="${K3S_SSH_KEY:-$HOME/.ssh/k3s_cluster}"
 SSH_USER="debian"
 
+# renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
 ARGOCD_VERSION="7.9.1"
+# renovate: datasource=helm depName=longhorn registryUrl=https://charts.longhorn.io
 LONGHORN_VERSION="1.7.3"
+# renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami-labs.github.io/sealed-secrets
 SEALED_SECRETS_VERSION="2.18.5"
 TUNNEL_ID="a1c6f9ec-b941-4595-b755-3d43f45a2c1b"
 

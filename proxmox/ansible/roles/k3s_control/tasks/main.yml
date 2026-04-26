@@ -3,6 +3,10 @@
     path: /usr/local/bin/k3s
   register: k3s_bin
 
+# curl|sh is a supply-chain risk in production (no signature verification before execution).
+# Acceptable here because INSTALL_K3S_VERSION pins the exact release, and the k3s installer
+# is maintained by Rancher/SUSE with a strong release process. For production, download the
+# installer, verify its SHA256 against https://github.com/k3s-io/k3s/releases, then execute.
 - name: Install k3s server (init node)
   ansible.builtin.shell: |
     curl -sfL https://get.k3s.io | K3S_TOKEN={{ k3s_token }} sh -s - server --cluster-init

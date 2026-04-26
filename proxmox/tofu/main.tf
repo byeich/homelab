@@ -1,4 +1,7 @@
 locals {
+    gateway    = "10.0.0.1"
+    dns_server = "10.0.0.53"
+
     defaults = {
         node        = var.node_name
         bridge      = var.network_bridge
@@ -55,7 +58,7 @@ resource "proxmox_virtual_environment_container" "svc" {
     ip_config {
       ipv4 { 
         address = each.value.ip
-        gateway = "10.0.0.1" 
+        gateway = local.gateway
       }
     }
 
@@ -103,12 +106,12 @@ resource "proxmox_virtual_environment_vm" "k3s_vms" {
     ip_config {
       ipv4 {
         address = each.value.ip
-        gateway = "10.0.0.1"
+        gateway = local.gateway
       }
     }
-    
+
     dns {
-      servers = ["10.0.0.53"]  # pihole container ip
+      servers = [local.dns_server]
     }
 
     user_account {

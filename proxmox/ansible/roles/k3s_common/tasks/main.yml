@@ -2,7 +2,7 @@
   ansible.builtin.copy:
     dest: /etc/resolv.conf
     content: |
-      nameserver 10.0.0.53
+      nameserver {{ dns_server }}
       nameserver 1.1.1.1
     mode: "0644"
 

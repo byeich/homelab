@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: main
+    targetRevision: add-github-actions
     path: k8s/apps/cloudflared
   destination:
     server: https://kubernetes.default.svc

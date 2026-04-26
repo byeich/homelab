@@ -5,6 +5,8 @@ metadata:
   namespace: immich
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: immich-machine-learning
@@ -22,7 +24,7 @@ spec:
               memory: 256Mi
             limits:
               cpu: 750m
-              memory: 512Mi
+              memory: 1Gi
           envFrom:
             - configMapRef:
                 name: immich-config

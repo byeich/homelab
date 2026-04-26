@@ -44,15 +44,19 @@ spec:
             - name: COUCHDB_SINGLE_NODE
               value: "true"
           livenessProbe:
-            httpGet:
-              path: /_up
-              port: 5984
+            exec:
+              command:
+                - sh
+                - -c
+                - curl -sf -u ${COUCHDB_USER}:${COUCHDB_PASSWORD} http://localhost:5984/_up
             initialDelaySeconds: 30
             periodSeconds: 30
           readinessProbe:
-            httpGet:
-              path: /_up
-              port: 5984
+            exec:
+              command:
+                - sh
+                - -c
+                - curl -sf -u ${COUCHDB_USER}:${COUCHDB_PASSWORD} http://localhost:5984/_up
             initialDelaySeconds: 15
             periodSeconds: 10
           lifecycle:

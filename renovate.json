@@ -7,6 +7,13 @@
   "kubernetes": {
     "fileMatch": ["k8s/apps/.+/.+\\.yaml$", "k8s/infrastructure/.+/.+\\.yaml$"]
   },
+  "packageRules": [
+    {
+      "matchPackageNames": ["longhorn"],
+      "matchUpdateTypes": ["minor", "major"],
+      "enabled": false
+    }
+  ],
   "regexManagers": [
     {
       "fileMatch": ["^scripts/bootstrap\\.sh$"],

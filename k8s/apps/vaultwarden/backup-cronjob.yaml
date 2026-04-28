@@ -20,12 +20,17 @@ spec:
                 - -c
                 - |
                   set -e
-                  curl -sf -c /tmp/cookies.txt \
-                    -X POST "http://vaultwarden.vaultwarden.svc.cluster.local/admin/" \
+                  RESP=$(curl -sf -i -X POST "http://vaultwarden.vaultwarden.svc.cluster.local/admin/" \
                     -H "Content-Type: application/x-www-form-urlencoded" \
-                    -d "token=${ADMIN_TOKEN}"
-                  curl -sf -b /tmp/cookies.txt \
-                    -X POST "http://vaultwarden.vaultwarden.svc.cluster.local/admin/backup"
+                    --data-urlencode "token=${ADMIN_TOKEN}")
+                  COOKIE=$(printf '%s' "$RESP" | grep -i "set-cookie" | grep -o "VW_ADMIN=[^;]*")
+                  if [ -z "$COOKIE" ]; then
+                    echo "ERROR: admin login failed, no cookie received" >&2
+                    exit 1
+                  fi
+                  curl -sf -X POST "http://vaultwarden.vaultwarden.svc.cluster.local/admin/config/backup_db" \
+                    -H "Cookie: ${COOKIE}" \
+                    -H "Content-Type: application/json"
                   echo "SQLite backup triggered at $(date -u)"
               env:
                 - name: ADMIN_TOKEN

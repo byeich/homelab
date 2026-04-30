@@ -6,14 +6,14 @@ jobs:
   yamllint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: pip install yamllint
       - run: yamllint -c .yamllint.yaml k8s/ proxmox/ansible/
 
   tofu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: opentofu/setup-opentofu@v1
       - run: tofu init
         working-directory: proxmox/tofu
@@ -25,7 +25,7 @@ jobs:
   ansible-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: pip install ansible ansible-lint
       - name: Install Ansible collections
         run: ansible-galaxy collection install -r proxmox/ansible/requirements.yml
@@ -39,7 +39,7 @@ jobs:
   kubeconform:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install kubeconform
         env:
           # renovate: datasource=github-releases depName=yannh/kubeconform

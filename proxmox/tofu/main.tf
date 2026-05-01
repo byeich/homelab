@@ -76,7 +76,10 @@ resource "proxmox_virtual_environment_container" "svc" {
   }
 
   memory { dedicated = each.value.memory }
-  cpu { cores = each.value.cores }
+  cpu {
+    cores = each.value.cores
+    units = 1024
+  }
 
   unprivileged = true
   started      = true

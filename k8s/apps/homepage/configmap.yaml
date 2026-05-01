@@ -76,6 +76,10 @@ data:
             href: http://10.0.0.9
             description: NAS storage
             icon: truenas.png
+        - Backblaze B2:
+            href: https://secure.backblaze.com/b2_buckets.htm
+            description: Offsite backup
+            icon: backblaze.png
 
     - Security:
         - Vaultwarden:

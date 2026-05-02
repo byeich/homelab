@@ -18,6 +18,14 @@ spec:
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:2026.3.0
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 10m

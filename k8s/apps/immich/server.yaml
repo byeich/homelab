@@ -17,6 +17,12 @@ spec:
       containers:
         - name: immich-server
           image: ghcr.io/immich-app/immich-server:v2.7.5
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 750m

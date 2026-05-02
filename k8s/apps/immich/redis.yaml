@@ -16,6 +16,13 @@ spec:
       containers:
         - name: redis
           image: docker.io/valkey/valkey:9
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 10m

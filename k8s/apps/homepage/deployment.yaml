@@ -19,6 +19,12 @@ spec:
       containers:
         - name: homepage
           image: ghcr.io/gethomepage/homepage:v1.12.3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 10m

@@ -19,6 +19,12 @@ spec:
       containers:
         - name: vaultwarden
           image: vaultwarden/server:1.35.8
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 10m

@@ -21,6 +21,14 @@ spec:
       containers:
         - name: couchdb
           image: couchdb:3.5.1
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 5984
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 10m

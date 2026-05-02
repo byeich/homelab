@@ -6,7 +6,7 @@ locals {
     node      = var.node_name
     bridge    = var.network_bridge
     rootds    = var.rootfs_datastore
-    tmpl_id   = proxmox_virtual_environment_download_file.debian_lxc.id
+    tmpl_id   = proxmox_download_file.debian_lxc.id
     vm_node   = var.vm_node_name
     vm_bridge = var.vm_network_bridge
     vm_rootds = var.rootfs_datastore
@@ -33,7 +33,7 @@ locals {
 }
 
 # Download LXC Template
-resource "proxmox_virtual_environment_download_file" "debian_lxc" {
+resource "proxmox_download_file" "debian_lxc" {
   node_name    = var.node_name
   content_type = "vztmpl"
   datastore_id = var.template_datastore

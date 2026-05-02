@@ -20,7 +20,6 @@ spec:
         - name: homepage
           image: ghcr.io/gethomepage/homepage:v1.12.3
           securityContext:
-            runAsNonRoot: true
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]

@@ -9,6 +9,21 @@ terraform {
       version = "~> 2.0"
     }
   }
+
+  backend "s3" {
+    bucket = "bkylab-tofu-state"
+    key    = "proxmox/tofu/terraform.tfstate"
+    region = "us-east-005"
+
+    endpoints = {
+      s3 = "https://s3.us-east-005.backblazeb2.com"
+    }
+
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    skip_region_validation      = true
+    force_path_style            = true
+  }
 }
 
 provider "proxmox" {

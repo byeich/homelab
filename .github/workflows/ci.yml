@@ -12,6 +12,9 @@ jobs:
 
   tofu:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.B2_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.B2_APP_KEY }}
     steps:
       - uses: actions/checkout@v6
       - uses: opentofu/setup-opentofu@v2

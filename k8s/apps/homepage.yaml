@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: add-backblaze-link
+    targetRevision: main
     path: k8s/apps/homepage
   destination:
     server: https://kubernetes.default.svc

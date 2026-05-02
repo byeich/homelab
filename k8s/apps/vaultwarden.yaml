@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: main
+    targetRevision: cluster-security-updates
     path: k8s/apps/vaultwarden
   destination:
     server: https://kubernetes.default.svc

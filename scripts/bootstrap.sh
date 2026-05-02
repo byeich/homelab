@@ -28,6 +28,36 @@ prompt()  { echo -e "${YELLOW}[INPUT]${NC} $*"; }
 section() { echo -e "\n${GREEN}══════════════════════════════════════${NC}"; echo -e "${GREEN}  $*${NC}"; echo -e "${GREEN}══════════════════════════════════════${NC}"; }
 
 
+section "Step 0: OpenTofu remote state credentials"
+TOFU_ENV_FILE="$HOME/.config/homelab/tofu.env"
+mkdir -p "$HOME/.config/homelab"
+
+if [[ -f "$TOFU_ENV_FILE" ]] && grep -q "AWS_ACCESS_KEY_ID" "$TOFU_ENV_FILE"; then
+  info "B2 credentials already saved at $TOFU_ENV_FILE"
+  # shellcheck source=/dev/null
+  source "$TOFU_ENV_FILE"
+else
+  warn "OpenTofu state is stored in Backblaze B2 (bkylab-tofu-state bucket)."
+  prompt "Enter B2 Key ID for tofu state bucket (or press Enter to skip):"
+  read -r -s B2_KEY_ID
+  if [[ -n "$B2_KEY_ID" ]]; then
+    prompt "Enter B2 Application Key:"
+    read -r -s B2_APP_KEY
+    cat > "$TOFU_ENV_FILE" <<EOF
+export AWS_ACCESS_KEY_ID="$B2_KEY_ID"
+export AWS_SECRET_ACCESS_KEY="$B2_APP_KEY"
+EOF
+    chmod 600 "$TOFU_ENV_FILE"
+    # shellcheck source=/dev/null
+    source "$TOFU_ENV_FILE"
+    unset B2_KEY_ID B2_APP_KEY
+    info "Credentials saved to $TOFU_ENV_FILE"
+    info "Add 'source $TOFU_ENV_FILE' to your ~/.zshrc to persist across sessions."
+  else
+    warn "Skipped. Run 'tofu init' manually after exporting AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+  fi
+fi
+
 section "Step 1: Mac prerequisites"
 if ! command -v brew &>/dev/null; then
   echo -e "${RED}Homebrew not found. Install it first: https://brew.sh${NC}"

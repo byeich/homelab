@@ -36,6 +36,12 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s+\\w+_VERSION: \"(?<currentValue>[^\"]+)\""
       ]
+    },
+    {
+      "fileMatch": ["^proxmox/ansible/playbooks/k3s_bootstrap\\.yml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) registryUrl=(?<registryUrl>\\S+)\\n\\s+\\w+_version: \"(?<currentValue>[^\"]+)\""
+      ]
     }
   ]
 }

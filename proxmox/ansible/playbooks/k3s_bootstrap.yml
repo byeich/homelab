@@ -3,8 +3,12 @@
   hosts: k3s-control[0]
   become: true
   vars:
-    argocd_version: "7.x"
-    longhorn_version: "1.7.x"
+    # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
+    argocd_version: "7.9.1"
+    # renovate: datasource=helm depName=longhorn registryUrl=https://charts.longhorn.io
+    longhorn_version: "1.7.3"
+    # renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami-labs.github.io/sealed-secrets
+    sealed_secrets_version: "2.18.5"
     repo_url: "https://github.com/byeich/homelab"
     target_revision: "main"
 
@@ -31,22 +35,13 @@
       ansible.builtin.command: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
       changed_when: false
 
-    - name: Install ArgoCD via helm
-      ansible.builtin.command: >
-        helm upgrade --install argocd argo/argo-cd
-        --namespace argocd
-        --version "{{ argocd_version }}"
-        --values /tmp/argocd-values.yaml
-        --wait
-      changed_when: false
-
     - name: Copy ArgoCD values to control node
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../../../k8s/bootstrap/argocd/values.yaml"
         dest: /tmp/argocd-values.yaml
         mode: "0644"
 
-    - name: Upgrade ArgoCD with values
+    - name: Install ArgoCD via helm
       ansible.builtin.command: >
         helm upgrade --install argocd argo/argo-cd
         --namespace argocd
@@ -73,6 +68,7 @@
       ansible.builtin.command: >
         helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets
         --namespace kube-system
+        --version "{{ sealed_secrets_version }}"
         --set fullnameOverride=sealed-secrets-controller
         --wait
       changed_when: false
@@ -102,7 +98,7 @@
       changed_when: false
 
     - name: Apply immich SealedSecret
-      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/immich/secret.yaml
+      ansible.builtin.command: kubectl apply -f {{ playbook_dir }}/../../../k8s/apps/immich/sealed-secret.yaml
       changed_when: false
 
     ######## App-of-Apps ########

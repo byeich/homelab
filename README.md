@@ -1,5 +1,29 @@
 # homelab
-Repo for IaC/configuration of homelab
+
+Personal homelab managed as code. Two Proxmox nodes running a 8-node k3s cluster, with TrueNAS for storage and ArgoCD for GitOps. Infrastructure provisioned with OpenTofu + Ansible; workloads deployed via ArgoCD App-of-Apps targeting this repo.
+
+```mermaid
+graph LR
+    internet(["Internet"]) -->|"*.bkylab.net"| cf["Cloudflare\ntunnel · DNS"]
+    gh["GitHub\n+ Renovate"] -->|"ArgoCD sync"| cluster
+
+    subgraph home["Home Network · 10.0.0.0/24"]
+        pihole["Pi-hole · .53\nlocal DNS"]
+        truenas["TrueNAS · .9\nNFS · backup target"]
+        subgraph proxmox["Proxmox: homelab + homelab2"]
+            cluster["k3s Cluster\n3 control · 5 workers\nvaultwarden · immich · homepage\nobsidian · grafana · cloudflared"]
+        end
+    end
+
+    b2["Backblaze B2\nbackups · tofu state"]
+
+    cf -->|"tunnel"| cluster
+    pihole -->|"→ 10.0.0.60"| cluster
+    cluster -->|"NFS · backups"| truenas
+    truenas -->|"rclone crypt"| b2
+```
+
+See [docs/architecture.md](docs/architecture.md) for detailed infrastructure, traffic flow, GitOps pipeline, and storage diagrams.
 
 ## Prerequisites
 

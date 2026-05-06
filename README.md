@@ -38,7 +38,7 @@ All infrastructure is managed from `proxmox/tofu`.
 
 `tofu apply` also generates `proxmox/ansible/inventory.ini` from the live VM state.
 
-**State:** Local state is gitignored and backed up to a TrueNAS server. In a production environment this would be replaced with a remote backend (Terraform Cloud or S3+DynamoDB) for state locking and team access.
+**State:** Remote state is stored in Backblaze B2 (`bkylab-tofu-state`, S3-compatible backend). Credentials are loaded from `~/.config/homelab/tofu.env` before running `tofu` commands. See `proxmox/tofu/provider.tf` for backend config.
 
 **What gets created:**
 

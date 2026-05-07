@@ -11,9 +11,9 @@ flowchart TB
         ctrl1["k3s-control-1"]
         ctrl2["k3s-control-2"]
         ctrl3["k3s-control-3"]
-        wrk1["k3s-worker-1"]
-        wrk2["k3s-worker-2"]
-        wrk3["k3s-worker-3"]
+        wrk1["k3s-worker-1\n50 GB disk"]
+        wrk2["k3s-worker-2\n50 GB disk"]
+        wrk3["k3s-worker-3\n50 GB disk"]
     end
 
     subgraph prox1["Proxmox · homelab"]
@@ -59,6 +59,8 @@ flowchart TB
 | `k3s-worker-4` | `10.0.0.73` | Worker | homelab | 2 | 4 GB | 100 GB |
 | `k3s-worker-5` | `10.0.0.74` | Worker | homelab | 2 | 4 GB | 100 GB |
 | TrueNAS | `10.0.0.9` | NAS / backup target | bare metal | — | — | 2×12 TB mirror + spare |
+
+> **HA note:** Workers currently connect to `ctrl1`'s API server directly (`10.0.0.60:6443`). etcd tolerates losing one control plane node, but workers lose API connectivity if ctrl1 goes down. A kube-vip VIP in front of all three control plane nodes is a planned improvement.
 
 ## k3s Cluster Services
 
@@ -144,8 +146,9 @@ flowchart LR
     cf <-->|"persistent tunnel"| cfpod
     cfpod --> traefik
 
-    user -->|"LAN  *.bkylab.net"| pihole
-    pihole -.->|"→ 10.0.0.60"| traefik
+    user -->|"LAN DNS lookup"| pihole
+    pihole -.->|"resolves → 10.0.0.60"| user
+    user -->|"→ 10.0.0.60 direct"| traefik
 
     traefik --> svc
 
@@ -174,6 +177,7 @@ flowchart LR
 
     subgraph gh["GitHub"]
         ci["CI\nyamllint · tofu validate\nansible-lint · kubeconform"]
+        devbr["dev branch"]
         repo["main branch"]
     end
 
@@ -182,8 +186,9 @@ flowchart LR
         workloads["Workloads"]
     end
 
-    dev -->|"git push"| gh
-    renovate -->|"dep bump PRs"| gh
+    dev -->|"git push"| devbr
+    renovate -->|"dep bump PRs"| repo
+    devbr -->|"PR + merge"| repo
     ci --> repo
     repo -->|"polls · ~3 min"| argo
     argo --> workloads
@@ -194,7 +199,7 @@ flowchart LR
     classDef msg     fill:#2ca5e0,stroke:#fff,stroke-width:2px,color:#fff
 
     class argo,workloads k8s
-    class dev,renovate,tg ext
+    class dev,renovate ext
     class tg msg
 ```
 

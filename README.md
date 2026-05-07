@@ -1,6 +1,6 @@
 # homelab
 
-Personal homelab managed as code. Two Proxmox nodes running a 8-node k3s cluster, with TrueNAS for storage and ArgoCD for GitOps. Infrastructure provisioned with OpenTofu + Ansible; workloads deployed via ArgoCD App-of-Apps targeting this repo.
+Personal homelab managed as code. Two Proxmox nodes running an 8-node k3s cluster, with TrueNAS for storage and ArgoCD for GitOps. Infrastructure provisioned with OpenTofu + Ansible; workloads deployed via ArgoCD App-of-Apps targeting this repo.
 
 ```mermaid
 flowchart LR

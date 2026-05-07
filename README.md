@@ -29,11 +29,13 @@ flowchart LR
     classDef storage fill:#e8a838,stroke:#fff,stroke-width:2px,color:#fff
     classDef dns     fill:#e85d04,stroke:#fff,stroke-width:2px,color:#fff
     classDef ext     fill:#f5f5f5,stroke:#bbb,color:#444
+    classDef gitops  fill:#24292e,stroke:#fff,stroke-width:2px,color:#fff
 
     class cluster k8s
     class truenas storage
     class pihole dns
-    class cf,b2,gh,internet ext
+    class cf,b2,internet ext
+    class gh gitops
 ```
 
 See [docs/architecture.md](docs/architecture.md) for detailed infrastructure, traffic flow, GitOps pipeline, and storage diagrams.

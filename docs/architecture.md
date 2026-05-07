@@ -31,6 +31,11 @@ flowchart TB
         ls[("Storage")]:::nas
     end
 
+    ctrl1 <-->|"etcd"| ctrl2
+    ctrl2 <-->|"etcd"| ctrl3
+    ctrl1 <-->|"etcd"| ctrl3
+    wrk1 & wrk2 & wrk3 & wrk4 & wrk5 -->|"join"| ctrl1
+
     classDef control fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff
     classDef worker  fill:#6ea6e0,stroke:#fff,stroke-width:2px,color:#fff
     classDef dns     fill:#e85d04,stroke:#fff,stroke-width:2px,color:#fff
@@ -95,6 +100,7 @@ flowchart TB
     vw & obs --> lh
     immich --> lh
     prom & grafana --> lh
+    prom -.->|"scrapes metrics"| vw & immich & home & obs
 
     immich -.->|"photos NFS  (bypasses Longhorn)"| truenas
     lh -.->|"volume backups"| truenas
@@ -200,7 +206,7 @@ CI runs on every push and PR:
 
 ## Storage Architecture
 
-Storage is layered: Longhorn provides distributed block storage for most workloads; Immich photos use a direct NFS mount to TrueNAS to avoid routing 100+ GB through the cluster. Longhorn takes daily volume backups to TrueNAS over NFS, and TrueNAS syncs everything offsite to Backblaze B2 via rclone with client-side encryption.
+Storage is layered: Longhorn provides distributed block storage for most workloads; Immich photos use a direct NFS mount to TrueNAS to avoid routing bulk media storage through the cluster. Longhorn takes daily volume backups to TrueNAS over NFS, and TrueNAS syncs everything offsite to Backblaze B2 via rclone with client-side encryption.
 
 ```mermaid
 flowchart TB

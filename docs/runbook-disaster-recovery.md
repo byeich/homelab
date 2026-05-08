@@ -17,10 +17,10 @@ Longhorn volume restores (Step 7) are the main variable — large volumes over a
 
 Before starting, verify access to:
 
-- **Bitwarden** (bitwarden.com or mobile app — NOT vaultwarden.bkylab.net, which is the service being rebuilt) — contains the sealed-secrets key backup, rclone B2 crypt passphrase/salt, Cloudflare tunnel credentials.json, and all service passwords
+- **Bitwarden** (bitwarden.com or mobile app — NOT vaultwarden.bkylab.net, which is the service being rebuilt) contains the sealed-secrets key backup, rclone B2 crypt passphrase/salt, Cloudflare tunnel credentials.json, and all service passwords
 - **B2 credentials** — `~/.config/homelab/tofu.env` (or retrieve B2 Key ID + App Key from Bitwarden for tofu remote state)
 - **SSH keys** — `~/.ssh/homelab` (Pi-hole LXC) and `~/.ssh/k3s_cluster` (k3s VMs). Run `./scripts/generate-keys.sh` if missing
-- **CLI tools** — `kubectl`, `helm`, `tofu`, `rclone`, `kubeseal` (`brew install kubeseal` if missing — needed for Step 5 smoke test)
+- **CLI tools** — `kubectl`, `helm`, `tofu`, `rclone`, `kubeseal` (`brew install kubeseal` if missing, needed for Step 5 smoke test)
 - **Proxmox** running with VM templates on both nodes (ID 9000 on homelab2, ID 9001 on homelab)
 - **TrueNAS** running with NFS shares accessible (Longhorn backup target + Immich photos NFS)
 
@@ -37,7 +37,7 @@ Before starting, verify access to:
 
 ## Step 0: Restore from B2 (only if TrueNAS lost)
 
-> Skip this step if TrueNAS is running — Longhorn reads the NFS backup share directly and the rclone passphrase is not needed.
+> Skip this step if TrueNAS is running since Longhorn reads the NFS backup share directly and the rclone passphrase is not needed.
 
 TrueNAS itself must be rebuilt first (OS reinstall, pool import, datasets recreated) before restoring data to it. Once the OS and pool are up:
 
@@ -71,7 +71,7 @@ After TrueNAS NFS shares are restored, continue from Step 1.
 
 ```bash
 cd proxmox/tofu
-source ~/.config/homelab/tofu.env   # B2 credentials for remote state
+source ~/.config/homelab/tofu.env    # B2 credentials for remote state
 tofu init                            # required on fresh checkout or new machine
 tofu apply
 ```
@@ -82,7 +82,7 @@ tofu apply
 
 ## Step 2: Install Pi-hole DNS
 
-Install Pi-hole **before** k3s. The k3s VMs are configured to use 10.0.0.53 as their DNS resolver — if Pi-hole isn't running when k3s pulls images in Step 3, DNS resolution fails.
+Install Pi-hole **before** k3s. The k3s VMs are configured to use 10.0.0.53 as their DNS resolver. If Pi-hole isn't running when k3s pulls images in Step 3, DNS resolution fails.
 
 ```bash
 cd proxmox/ansible
@@ -92,7 +92,7 @@ cd proxmox/ansible
 
 Verify Pi-hole is resolving before proceeding:
 ```bash
-dig @10.0.0.53 google.com +short   # should return an IP, not an error
+dig @10.0.0.53 google.com +short   # should return an IP
 ```
 
 Pi-hole at 10.0.0.53. Internal hostnames (`argocd.bkylab.net`, `longhorn.bkylab.net`) resolve via Pi-hole → 10.0.0.60 (Traefik).
@@ -122,16 +122,16 @@ ssh -i ~/.ssh/k3s_cluster -o StrictHostKeyChecking=no debian@10.0.0.60 \
 chmod 600 ~/.kube/k3s-homelab.yaml
 export KUBECONFIG=~/.kube/k3s-homelab.yaml
 
-kubectl get nodes   # all 8 nodes should be Ready
+kubectl get nodes   # all nodes should be Ready
 ```
 
 ---
 
-## Step 4: Install infrastructure (Helm charts)
+## Step 4: Install infrastructure
 
 This is a rebuild — sealed secrets are already committed to git. Install the Helm charts directly, then restore the sealed-secrets key before letting ArgoCD sync.
 
-> **Why not `k3s_bootstrap.yml`?** The README rebuild path uses that playbook, but it runs all the way through Helm installs → sealed-secrets apply → App-of-Apps in one shot. For DR, the sealed-secrets key must be manually restored (Step 5) between Helm install and App-of-Apps — there's no safe place to inject that step inside the playbook. Do the Helm installs manually here, restore the key in Step 5, then apply App-of-Apps in Step 6.
+> **Why not `k3s_bootstrap.yml`?** The README rebuild path uses that playbook, but it runs all the way through Helm installs → sealed-secrets apply → App-of-Apps in one shot. For DR, the sealed-secrets key must be manually restored (Step 5) between Helm install and App-of-Apps, since there's no safe place to inject that step inside the playbook. Do the Helm installs manually here, restore the key in Step 5, then apply App-of-Apps in Step 6.
 
 ```bash
 export KUBECONFIG=~/.kube/k3s-homelab.yaml
@@ -164,7 +164,7 @@ helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
   --wait
 ```
 
-Version numbers are pinned in `scripts/bootstrap.sh` — use those as the source of truth if this runbook is out of date.
+Version numbers are pinned in `scripts/bootstrap.sh`. Use those as the source of truth if this runbook is out of date.
 
 **Do NOT apply App-of-Apps yet.** Continue to Step 5.
 
@@ -172,12 +172,12 @@ Version numbers are pinned in `scripts/bootstrap.sh` — use those as the source
 
 ## Step 5: CRITICAL — Restore sealed-secrets key
 
-The sealed-secrets controller auto-generates a new key pair on first startup. If ArgoCD syncs before you replace it with the original backed-up key, every SealedSecret in git will fail to decrypt — the controller returns an error and creates no Secret at all, so every service starts with missing credentials.
+The sealed-secrets controller auto-generates a new key pair on first startup. If ArgoCD syncs before you replace it with the original backed-up key, every SealedSecret in git will fail to decrypt and the controller returns an error and creates no Secret at all, so every service starts with missing credentials.
 
 ```bash
 # 1. Get the backed-up key YAML from Bitwarden
 #    Bitwarden → Secure Notes → "sealed-secrets-keykwwrf full YAML"
-#    Save it locally — do NOT commit this file
+#    Save it locally, do NOT commit this file
 vim ~/sealed-secrets-keykwwrf.yaml
 
 # 2. Delete the auto-generated key the controller created on startup

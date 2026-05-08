@@ -206,8 +206,8 @@ flowchart LR
 CI runs on every push and PR:
 - **yamllint** — YAML syntax and style on `k8s/` and Ansible files
 - **tofu validate + fmt** — Terraform syntax and formatting
-- **ansible-lint** — Ansible best practices (37 violations fixed to reach clean baseline)
-- **kubeconform** — validates Kubernetes manifests against upstream schemas (strict mode)
+- **ansible-lint** — Ansible best practices
+- **kubeconform** — validates Kubernetes manifests against upstream schemas
 
 ## Storage Architecture
 

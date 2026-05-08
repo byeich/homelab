@@ -6,7 +6,7 @@ locals {
     node      = var.node_name
     bridge    = var.network_bridge
     rootds    = var.rootfs_datastore
-    tmpl_id   = proxmox_download_file.debian_lxc.id
+    tmpl_id   = "local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst"
     vm_node   = var.vm_node_name
     vm_bridge = var.vm_network_bridge
     vm_rootds = var.rootfs_datastore
@@ -30,15 +30,6 @@ locals {
     k3s-worker-4 = { vm_id = 323, memory = 4096, cores = 2, ip = "10.0.0.73/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
     k3s-worker-5 = { vm_id = 324, memory = 4096, cores = 2, ip = "10.0.0.74/24", node = "homelab", longhorn_disk_size = 100, template_id = 9001 }
   }
-}
-
-# Download LXC Template
-resource "proxmox_download_file" "debian_lxc" {
-  node_name    = var.node_name
-  content_type = "vztmpl"
-  datastore_id = var.template_datastore
-
-  url = "http://download.proxmox.com/images/system/debian-12-standard_12.2-1_amd64.tar.zst"
 }
 
 # Create LXC containers
@@ -83,6 +74,10 @@ resource "proxmox_virtual_environment_container" "svc" {
 
   unprivileged = true
   started      = true
+
+  lifecycle {
+    ignore_changes = [initialization, operating_system]
+  }
 }
 
 # Create K3s VMs

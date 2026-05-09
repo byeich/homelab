@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-vip
+  namespace: argocd
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: "-5248737533"
+    notifications.argoproj.io/subscribe.on-sync-failed.telegram: "-5248737533"
+    notifications.argoproj.io/subscribe.on-health-degraded.telegram: "-5248737533"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/byeich/homelab
+    targetRevision: kube-vip-28
+    path: k8s/apps/kube-vip
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

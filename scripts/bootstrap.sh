@@ -10,6 +10,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONTROL_NODE_IP="${K3S_CONTROL_IP:-10.0.0.60}"
+K3S_VIP="${K3S_VIP:-10.0.0.59}"
 SSH_KEY="${K3S_SSH_KEY:-$HOME/.ssh/k3s_cluster}"
 SSH_USER="debian"
 
@@ -77,10 +78,10 @@ section "Step 2: Configure kubectl"
 KUBECONFIG_PATH="$HOME/.kube/k3s-homelab.yaml"
 mkdir -p "$HOME/.kube"
 
-info "Copying kubeconfig from $CONTROL_NODE_IP..."
+info "Copying kubeconfig from $CONTROL_NODE_IP (pointing at VIP $K3S_VIP)..."
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SSH_USER@$CONTROL_NODE_IP" \
   "sudo cat /etc/rancher/k3s/k3s.yaml" \
-  | sed "s|https://127.0.0.1:6443|https://$CONTROL_NODE_IP:6443|g" \
+  | sed "s|https://127.0.0.1:6443|https://$K3S_VIP:6443|g" \
   > "$KUBECONFIG_PATH"
 chmod 600 "$KUBECONFIG_PATH"
 

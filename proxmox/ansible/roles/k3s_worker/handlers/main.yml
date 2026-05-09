@@ -1,3 +1,6 @@
 - name: Restart k3s-agent
-  ansible.builtin.command: systemctl --no-block restart k3s-agent
+  # --no-block required: k3s-agent is Type=notify and won't send READY until it connects
+  # to the API server. Without --no-block, systemctl restart hangs until the connection
+  # succeeds (which can take 30s+ if the agent retries on startup).
+  ansible.builtin.command: systemctl --no-block restart k3s-agent  # noqa: command-instead-of-module
   changed_when: true

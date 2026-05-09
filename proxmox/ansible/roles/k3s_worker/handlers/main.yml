@@ -1,4 +1,3 @@
 - name: Restart k3s-agent
-  ansible.builtin.service:
-    name: k3s-agent
-    state: restarted
+  ansible.builtin.command: systemctl --no-block restart k3s-agent
+  changed_when: true

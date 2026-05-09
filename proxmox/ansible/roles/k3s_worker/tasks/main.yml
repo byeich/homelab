@@ -3,12 +3,23 @@
     path: /usr/local/bin/k3s
   register: k3s_worker_bin
 
+# Update existing workers to point at the kube-vip VIP instead of ctrl1 directly.
+# k3s-agent reads K3S_URL from this env file on every start.
+# Run kube-vip DaemonSet via ArgoCD first so the VIP is live before restarting agents.
+- name: Set k3s server URL to VIP
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/system/k3s-agent.service.env
+    regexp: "^K3S_URL="
+    line: "K3S_URL='https://{{ k3s_vip }}:{{ k3s_api_port }}'"
+  when: k3s_worker_bin.stat.exists
+  notify: Restart k3s-agent
+
 - name: Install k3s agent  # noqa: command-instead-of-module
   ansible.builtin.shell: |
     set -euo pipefail
     curl -sfL https://get.k3s.io | \
       K3S_TOKEN={{ k3s_token }} \
-      K3S_URL=https://{{ hostvars[groups['k3s-control'][0]]['ansible_host'] }}:{{ k3s_api_port }} \
+      K3S_URL=https://{{ k3s_vip }}:{{ k3s_api_port }} \
       sh -
   args:
     executable: /bin/bash

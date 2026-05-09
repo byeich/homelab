@@ -117,7 +117,7 @@ mkdir -p ~/.kube
 # StrictHostKeyChecking=no required — freshly provisioned VMs have new host keys
 ssh -i ~/.ssh/k3s_cluster -o StrictHostKeyChecking=no debian@10.0.0.60 \
   "sudo cat /etc/rancher/k3s/k3s.yaml" \
-  | sed 's|https://127.0.0.1:6443|https://10.0.0.60:6443|g' \
+  | sed 's|https://127.0.0.1:6443|https://10.0.0.59:6443|g' \
   > ~/.kube/k3s-homelab.yaml
 chmod 600 ~/.kube/k3s-homelab.yaml
 export KUBECONFIG=~/.kube/k3s-homelab.yaml

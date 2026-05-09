@@ -3,6 +3,18 @@
     path: /usr/local/bin/k3s
   register: k3s_control_bin
 
+- name: Write k3s server config (TLS SANs for VIP)
+  ansible.builtin.copy:
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      tls-san:
+        - "{{ k3s_vip }}"
+        - "k8s-api.bkylab.net"
+  notify: Restart k3s
+
 # curl|sh is a supply-chain risk in production (no signature verification before execution).
 # Acceptable here because INSTALL_K3S_VERSION pins the exact release, and the k3s installer
 # is maintained by Rancher/SUSE with a strong release process. For production, download the

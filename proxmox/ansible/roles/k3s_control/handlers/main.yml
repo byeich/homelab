@@ -1,4 +1,3 @@
 - name: Restart k3s
-  ansible.builtin.service:
-    name: k3s
-    state: restarted
+  ansible.builtin.command: systemctl --no-block restart k3s
+  changed_when: true

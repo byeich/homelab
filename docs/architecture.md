@@ -36,7 +36,7 @@ flowchart TB
     ctrl1 <-->|"etcd"| ctrl2
     ctrl2 <-->|"etcd"| ctrl3
     ctrl1 <-->|"etcd"| ctrl3
-    ctrl1 & ctrl2 & ctrl3 -->|"ARP"| vip
+    vip -.->|"backed by"| ctrl1 & ctrl2 & ctrl3
     wrk1 & wrk2 & wrk3 & wrk4 & wrk5 -->|"join"| vip
 
     classDef control fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff

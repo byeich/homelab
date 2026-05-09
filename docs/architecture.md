@@ -31,20 +31,25 @@ flowchart TB
         ls[("Storage")]:::nas
     end
 
+    vip["kube-vip VIP\n10.0.0.59"]:::vip
+
     ctrl1 <-->|"etcd"| ctrl2
     ctrl2 <-->|"etcd"| ctrl3
     ctrl1 <-->|"etcd"| ctrl3
-    wrk1 & wrk2 & wrk3 & wrk4 & wrk5 -->|"join"| ctrl1
+    vip -.->|"backed by"| ctrl1 & ctrl2 & ctrl3
+    wrk1 & wrk2 & wrk3 & wrk4 & wrk5 -->|"join"| vip
 
     classDef control fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff
     classDef worker  fill:#6ea6e0,stroke:#fff,stroke-width:2px,color:#fff
     classDef dns     fill:#e85d04,stroke:#fff,stroke-width:2px,color:#fff
     classDef nas     fill:#e8a838,stroke:#fff,stroke-width:2px,color:#fff
+    classDef vip     fill:#6f42c1,stroke:#fff,stroke-width:2px,color:#fff
 
     class ctrl1,ctrl2,ctrl3,lc control
     class wrk1,wrk2,wrk3,wrk4,wrk5,lw worker
     class pihole,ld dns
     class truenas,ls nas
+    class vip vip
 ```
 
 | Host | IP | Role | Proxmox node | vCPU | RAM | Longhorn disk |
@@ -58,9 +63,10 @@ flowchart TB
 | `k3s-worker-3` | `10.0.0.72` | Worker | homelab2 | 2 | 4 GB | 50 GB |
 | `k3s-worker-4` | `10.0.0.73` | Worker | homelab | 2 | 4 GB | 100 GB |
 | `k3s-worker-5` | `10.0.0.74` | Worker | homelab | 2 | 4 GB | 100 GB |
+| kube-vip VIP | `10.0.0.59` | Control plane VIP (kube-vip ARP) | — | — | — | — |
 | TrueNAS | `10.0.0.9` | NAS / backup target | bare metal | — | — | 2×12 TB mirror + spare |
 
-> **HA note:** Workers currently connect to `ctrl1`'s API server directly (`10.0.0.60:6443`). etcd tolerates losing one control plane node, but workers lose API connectivity if ctrl1 goes down. A kube-vip VIP in front of all three control plane nodes is a planned improvement.
+> **HA:** Workers connect to the kube-vip VIP (`10.0.0.59`) rather than any individual control plane node. kube-vip runs as a DaemonSet on all three control nodes and uses ARP to float the VIP — losing any one control node leaves the API reachable and workers unaffected.
 
 ## k3s Cluster Services
 

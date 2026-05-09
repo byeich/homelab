@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/byeich/homelab
-    targetRevision: kube-vip-28
+    targetRevision: main
     path: k8s/apps/kube-vip
   destination:
     server: https://kubernetes.default.svc

@@ -19,7 +19,7 @@ ARGOCD_VERSION="7.9.1"
 # renovate: datasource=helm depName=longhorn registryUrl=https://charts.longhorn.io
 LONGHORN_VERSION="1.7.3"
 # renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami-labs.github.io/sealed-secrets
-SEALED_SECRETS_VERSION="2.18.5"
+SEALED_SECRETS_VERSION="2.18.6"
 TUNNEL_ID="a1c6f9ec-b941-4595-b755-3d43f45a2c1b"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'

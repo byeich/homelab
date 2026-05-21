@@ -8,7 +8,7 @@
     # renovate: datasource=helm depName=longhorn registryUrl=https://charts.longhorn.io
     longhorn_version: "1.7.3"
     # renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami-labs.github.io/sealed-secrets
-    sealed_secrets_version: "2.18.5"
+    sealed_secrets_version: "2.18.6"
     repo_url: "https://github.com/byeich/homelab"
     target_revision: "main"
 

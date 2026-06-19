@@ -23,7 +23,7 @@ spec:
   cron: "0 1 * * 0"   # 1am every Sunday
   task: snapshot
   groups:
-    - default
-  retain: 4
+    - snapshot
+  retain: 2
   concurrency: 1
   labels: {}

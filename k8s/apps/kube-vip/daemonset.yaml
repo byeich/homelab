@@ -30,7 +30,7 @@ spec:
       serviceAccountName: kube-vip
       containers:
         - name: kube-vip
-          image: ghcr.io/kube-vip/kube-vip:v0.8.7
+          image: ghcr.io/kube-vip/kube-vip:v1.2.1
           imagePullPolicy: IfNotPresent
           args:
             - manager

@@ -20,7 +20,7 @@ spec:
         fsGroup: 5984
       containers:
         - name: couchdb
-          image: couchdb:3.5.1
+          image: couchdb:3.5.2
           securityContext:
             runAsNonRoot: true
             runAsUser: 5984

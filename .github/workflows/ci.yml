@@ -62,3 +62,58 @@ jobs:
             -ignore-filename-pattern '.*values\.yaml' \
             -summary \
             k8s/
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        env:
+          # renovate: datasource=github-releases depName=gitleaks/gitleaks
+          GITLEAKS_VERSION: "v8.30.1"
+        run: |
+          curl -sLo gitleaks.tar.gz \
+            https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz
+          tar xf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/
+      - name: Scan for secrets
+        run: gitleaks detect --source . --config .gitleaks.toml --redact --no-banner
+
+  kube-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install kube-linter
+        env:
+          # renovate: datasource=github-releases depName=stackrox/kube-linter
+          KUBE_LINTER_VERSION: "v0.8.3"
+        run: |
+          curl -sLo kube-linter.tar.gz \
+            https://github.com/stackrox/kube-linter/releases/download/${KUBE_LINTER_VERSION}/kube-linter-linux.tar.gz
+          tar xf kube-linter.tar.gz kube-linter
+          sudo mv kube-linter /usr/local/bin/
+      - name: Lint manifests
+        run: kube-linter lint k8s/ --config .kube-linter.yaml
+
+  helm-render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v5
+        with:
+          version: "v4.2.2"
+      - name: Render charts with repo values
+        run: |
+          set -euo pipefail
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add longhorn https://charts.longhorn.io
+          helm repo update
+          # chart versions are read from the ArgoCD app manifests so they can't drift
+          KPS_VER=$(grep -A1 'chart: kube-prometheus-stack' k8s/apps/kube-prometheus-stack.yaml | grep targetRevision | tr -d ' "' | cut -d: -f2)
+          helm template kps prometheus-community/kube-prometheus-stack --version "$KPS_VER" \
+            -f k8s/bootstrap/monitoring/values.yaml --namespace monitoring > /dev/null
+          LH_VER=$(grep -A1 'chart: longhorn' k8s/apps/infrastructure-longhorn.yaml | grep targetRevision | tr -d ' "' | cut -d: -f2)
+          helm template longhorn longhorn/longhorn --version "$LH_VER" \
+            -f k8s/infrastructure/longhorn/values.yaml --namespace longhorn-system > /dev/null

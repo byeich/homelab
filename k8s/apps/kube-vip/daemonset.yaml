@@ -5,6 +5,10 @@ metadata:
   namespace: kube-system
   labels:
     app.kubernetes.io/name: kube-vip
+  annotations:
+    # host network and NET_RAW are required to advertise the VIP via ARP
+    ignore-check.kube-linter.io/host-network: "required for VIP ARP"
+    ignore-check.kube-linter.io/drop-net-raw-capability: "required for VIP ARP"
 spec:
   selector:
     matchLabels:

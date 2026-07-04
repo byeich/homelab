@@ -1,0 +1,11 @@
+# gitleaks config. Runs in CI over full git history.
+title = "homelab-gitleaks"
+
+[extend]
+useDefault = true
+
+# SealedSecrets are RSA-encrypted ciphertext, safe to commit. Skip them so the
+# generic-api-key rule doesn't flag the encrypted blobs.
+[[allowlists]]
+description = "sealed secrets are encrypted"
+paths = ['''k8s/.*sealed-secret\.yaml''']

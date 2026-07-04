@@ -1,0 +1,8 @@
+# kube-linter config. Runs in CI against k8s/.
+# Default checks minus ones that don't fit a single-operator homelab.
+# Per-object exceptions use ignore-check.kube-linter.io annotations on the resource.
+checks:
+  exclude:
+    - "run-as-non-root"        # most app images run as root / non-numeric USER
+    - "no-read-only-root-fs"   # stateful apps need writable rootfs
+    - "no-anti-affinity"       # not required at this scale

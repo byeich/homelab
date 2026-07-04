@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: immich-machine-learning
   namespace: immich
+  annotations:
+    # probes hit :3003, which the container serves but doesn't declare as a port
+    ignore-check.kube-linter.io/liveness-port: "ml serves 3003"
+    ignore-check.kube-linter.io/readiness-port: "ml serves 3003"
 spec:
   replicas: 1
   strategy:

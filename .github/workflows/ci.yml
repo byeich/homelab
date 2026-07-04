@@ -8,7 +8,7 @@ jobs:
   yamllint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: pip install yamllint
       - run: yamllint -c .yamllint.yaml k8s/ proxmox/ansible/
 
@@ -18,7 +18,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.B2_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.B2_APP_KEY }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: opentofu/setup-opentofu@v2
       - run: tofu init
         working-directory: proxmox/tofu
@@ -30,7 +30,7 @@ jobs:
   ansible-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: pip install ansible ansible-lint
       - name: Install Ansible collections
         run: ansible-galaxy collection install -r proxmox/ansible/requirements.yml
@@ -44,7 +44,7 @@ jobs:
   kubeconform:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install kubeconform
         env:
           # renovate: datasource=github-releases depName=yannh/kubeconform

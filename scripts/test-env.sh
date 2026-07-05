@@ -34,8 +34,12 @@ up() {
 
 down() {
   tf_init
+  inventory="$REPO_ROOT/proxmox/ansible/test-inventory.ini"
+  ips=$(grep -o 'ansible_host=[0-9.]*' "$inventory" 2>/dev/null | cut -d= -f2 || true)
   $TF destroy -input=false -auto-approve -var-file="$VAR_FILE"
-  rm -f "$REPO_ROOT/proxmox/ansible/test-inventory.ini"
+  rm -f "$inventory"
+  # recreated VMs get new host keys
+  for ip in $ips; do ssh-keygen -R "$ip" >/dev/null 2>&1 || true; done
   echo "Test env down."
 }
 

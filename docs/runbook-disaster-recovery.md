@@ -236,6 +236,12 @@ kubectl get settings.longhorn.io backup-target -n longhorn-system -o jsonpath='{
 # Should output: nfs://10.0.0.9:/mnt/bigtank/backups/longhorn
 ```
 
+Once kube-vip is synced and the VIP responds, re-run `k3s.yml` to repoint workers from
+ctrl1 to the VIP (fresh installs join via ctrl1 because the VIP doesn't exist yet):
+```bash
+cd proxmox/ansible && ./run-playbook.sh playbooks/k3s.yml
+```
+
 ---
 
 ## Step 7: Restore stateful data

@@ -266,8 +266,8 @@ for i in $(seq 1 30); do
 done
 if [[ "$VIP_UP" == "true" ]]; then
   sed -i '' "s|https://$CONTROL_NODE_IP:6443|https://$K3S_VIP:6443|g" "$KUBECONFIG_PATH"
-  kubectl get nodes >/dev/null
-  info "kubeconfig now points at VIP $K3S_VIP"
+  kubectl get nodes >/dev/null && info "kubeconfig now points at VIP $K3S_VIP" \
+    || warn "kubeconfig repointed at $K3S_VIP but kubectl check failed, verify manually"
 else
   warn "VIP $K3S_VIP not responding yet. Once kube-vip is synced, repoint manually:"
   warn "  sed -i '' 's|https://$CONTROL_NODE_IP:6443|https://$K3S_VIP:6443|g' $KUBECONFIG_PATH"

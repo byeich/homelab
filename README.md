@@ -74,6 +74,8 @@ git push origin <branch>                                          # commit newly
 
 Verify Pi-hole before running `k3s.yml`: `dig @10.0.0.53 google.com +short`.
 
+After ArgoCD syncs kube-vip, re-run `k3s.yml` to repoint workers from ctrl1 to the VIP.
+
 **Rebuilding an existing cluster?** Do NOT run `bootstrap.sh` blindly. The sealed-secrets
 controller private key must be restored from the Bitwarden backup BEFORE anything syncs,
 or every SealedSecret in git is unreadable. Follow

@@ -78,10 +78,11 @@ section "Step 2: Configure kubectl"
 KUBECONFIG_PATH="$HOME/.kube/k3s-homelab.yaml"
 mkdir -p "$HOME/.kube"
 
-info "Copying kubeconfig from $CONTROL_NODE_IP (pointing at VIP $K3S_VIP)..."
+# VIP doesn't exist until ArgoCD deploys kube-vip (step 9); step 10 repoints
+info "Copying kubeconfig from $CONTROL_NODE_IP (pointing at ctrl1 until kube-vip is up)..."
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SSH_USER@$CONTROL_NODE_IP" \
   "sudo cat /etc/rancher/k3s/k3s.yaml" \
-  | sed "s|https://127.0.0.1:6443|https://$K3S_VIP:6443|g" \
+  | sed "s|https://127.0.0.1:6443|https://$CONTROL_NODE_IP:6443|g" \
   > "$KUBECONFIG_PATH"
 chmod 600 "$KUBECONFIG_PATH"
 
@@ -112,6 +113,7 @@ kubectl create namespace longhorn-system --dry-run=client -o yaml | kubectl appl
 helm upgrade --install longhorn longhorn/longhorn \
   --namespace longhorn-system \
   --version "$LONGHORN_VERSION" \
+  --values "$REPO_ROOT/k8s/infrastructure/longhorn/values.yaml" \
   --wait --timeout 10m
 info "Longhorn installed."
 
@@ -251,6 +253,25 @@ done
 section "Step 9: Apply ArgoCD App-of-Apps"
 kubectl apply -f "$REPO_ROOT/k8s/bootstrap/argocd/app-of-apps.yaml"
 info "App-of-Apps applied. ArgoCD will now sync all apps from git."
+
+section "Step 10: Repoint kubeconfig at kube-vip VIP"
+info "Waiting for ArgoCD to sync kube-vip and bring up $K3S_VIP (up to 5m)..."
+VIP_UP=false
+for i in $(seq 1 30); do
+  if curl -ksf -m 3 "https://$K3S_VIP:6443/cacerts" >/dev/null 2>&1; then
+    VIP_UP=true
+    break
+  fi
+  sleep 10
+done
+if [[ "$VIP_UP" == "true" ]]; then
+  sed -i '' "s|https://$CONTROL_NODE_IP:6443|https://$K3S_VIP:6443|g" "$KUBECONFIG_PATH"
+  kubectl get nodes >/dev/null
+  info "kubeconfig now points at VIP $K3S_VIP"
+else
+  warn "VIP $K3S_VIP not responding yet. Once kube-vip is synced, repoint manually:"
+  warn "  sed -i '' 's|https://$CONTROL_NODE_IP:6443|https://$K3S_VIP:6443|g' $KUBECONFIG_PATH"
+fi
 
 section "Bootstrap complete!"
 echo ""

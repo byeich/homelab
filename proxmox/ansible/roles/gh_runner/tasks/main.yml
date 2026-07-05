@@ -35,6 +35,7 @@
     mode: "0700"
   loop:
     - "{{ gh_runner_home }}/.homelab"
+    - "{{ gh_runner_home }}/.homelab/plugin-cache"
     - "{{ gh_runner_home }}/.ssh"
     - "{{ gh_runner_home }}/actions-runner"
 

@@ -21,6 +21,7 @@ jobs:
     # secrets and tofu state live in the runner home, checkout cleans the workspace
     env:
       TF_CLI_ARGS_init: -backend-config=path=/home/runner/.homelab/test-env.tfstate
+      TF_PLUGIN_CACHE_DIR: /home/runner/.homelab/plugin-cache
       TEST_ENV_VAR_FILE: /home/runner/.homelab/variables.auto.tfvars
       ANSIBLE_VAULT_PASSWORD_FILE: /home/runner/.homelab/.vault_pass
       K3S_SSH_KEY: /home/runner/.ssh/k3s_cluster

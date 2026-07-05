@@ -14,12 +14,13 @@
   when: k3s_worker_bin.stat.exists
   notify: Restart k3s-agent
 
+# fresh installs join via ctrl1, the VIP doesn't exist until ArgoCD deploys kube-vip
 - name: Install k3s agent  # noqa: command-instead-of-module
   ansible.builtin.shell: |
     set -euo pipefail
     curl -sfL https://get.k3s.io | \
       K3S_TOKEN={{ k3s_token }} \
-      K3S_URL=https://{{ k3s_vip }}:{{ k3s_api_port }} \
+      K3S_URL=https://{{ hostvars[groups['k3s-control'][0]]['ansible_host'] }}:{{ k3s_api_port }} \
       sh -
   args:
     executable: /bin/bash

@@ -38,7 +38,7 @@ flowchart LR
     class gh gitops
 ```
 
-See [docs/architecture.md](docs/architecture.md) for detailed infrastructure, traffic flow, GitOps pipeline, and storage diagrams.
+See [docs/architecture.md](docs/architecture.md) for detailed infrastructure, traffic flow, GitOps pipeline, and storage diagrams. For a full cluster rebuild, follow [docs/runbook-disaster-recovery.md](docs/runbook-disaster-recovery.md).
 
 ## Prerequisites
 
@@ -54,15 +54,33 @@ Proxmox must also have VM templates available (IDs 9000 and 9001) — Debian clo
 
 ## Full Setup Flow
 
+One-time prerequisites (fresh machine): SSH keys (`./scripts/generate-keys.sh`), tofu vars
+(`proxmox/tofu/variables.auto.tfvars`), and the Ansible vault (`.vault_pass` +
+`group_vars/all/vault.yml` with `k3s_token`, see Ansible setup below).
+
+All commands from the repo root:
+
 ```bash
-cd proxmox/tofu && tofu apply                        # provision VMs + LXC
+tofu -chdir=proxmox/tofu apply                                    # provision VMs + LXC
 cd proxmox/ansible
-./run-playbook.sh playbooks/k3s.yml                  # install k3s on all nodes
-./run-playbook.sh playbooks/k3s_disk_prep.yml        # prep Longhorn disks on workers
-./scripts/bootstrap.sh                               # fresh: seal secrets + install infra
-# or: ./run-playbook.sh playbooks/k3s_bootstrap.yml  # rebuild: install infra, apply sealed secrets from git
-git push origin <branch>                             # ArgoCD syncs all apps
+./run-playbook.sh playbooks/baseline.yml                          # base packages on LXC
+./run-playbook.sh playbooks/pihole.yml                            # DNS first: k3s nodes resolve via 10.0.0.53
+./run-playbook.sh playbooks/k3s.yml                               # install k3s on all nodes
+./run-playbook.sh playbooks/k3s_disk_prep.yml                     # prep Longhorn disks on workers
+cd ../..
+./scripts/bootstrap.sh                                            # fresh: seal secrets + install infra
+git push origin <branch>                                          # commit newly sealed secrets
 ```
+
+Verify Pi-hole before running `k3s.yml`: `dig @10.0.0.53 google.com +short`.
+
+After ArgoCD syncs kube-vip, re-run `k3s.yml` to repoint workers from ctrl1 to the VIP.
+
+**Rebuilding an existing cluster?** Do NOT run `bootstrap.sh` blindly. The sealed-secrets
+controller private key must be restored from the Bitwarden backup BEFORE anything syncs,
+or every SealedSecret in git is unreadable. Follow
+[docs/runbook-disaster-recovery.md](docs/runbook-disaster-recovery.md), which installs
+infra manually so the key restore fits between controller install and App-of-Apps.
 
 ## OpenTofu
 
@@ -84,7 +102,7 @@ All infrastructure is managed from `proxmox/tofu`.
 | Resource | IDs | Description |
 |---|---|---|
 | LXC: `pihole` | 303 | Pi-hole DNS container |
-| VM: `k3s-control-1/2/3` | 310–312 | k3s control plane nodes (currently hosted on 2 physical nodes. I plan to add more nodes in the future for better high availability) |
+| VM: `k3s-control-1/2/3` | 310–312 | k3s control plane nodes (all on homelab2; API HA via kube-vip VIP 10.0.0.59, host-level HA needs a 3rd node) |
 | VM: `k3s-worker-1/2/3` | 320–322 | k3s worker nodes |
 | VM: `k3s-worker-4/5` | 323–324 | k3s worker nodes, 100GB Longhorn disks |
 
@@ -165,6 +183,7 @@ ArgoCD notifications are configured in `k8s/bootstrap/argocd/values.yaml`. Each 
 | Longhorn | `longhorn-system` | Distributed block storage, daily backups + weekly snapshots |
 | Sealed Secrets | `kube-system` | Encrypts secrets for safe git storage |
 | Reloader | `reloader` | Auto-restarts pods when their ConfigMap or Secret changes |
+| kube-vip | `kube-system` | Floating VIP 10.0.0.59 for the k8s API across all 3 control nodes |
 
 ## Secrets
 
@@ -182,3 +201,30 @@ kubectl create secret generic <name> -n <namespace> \
 ```
 
 Never commit plaintext secrets. Files matching `secrets-local/` and `*.plaintext.yaml` are gitignored.
+
+## CI
+
+Every push runs lint and validation in GitHub Actions (`.github/workflows/ci.yml`):
+yamllint, `tofu validate`/`fmt`, ansible-lint, kubeconform, gitleaks (secret scanning over
+full history), kube-linter (k8s security lint), and helm-render (charts templated against
+the repo values files). Chart versions in helm-render are read from the ArgoCD app
+manifests so CI always tests what is deployed.
+
+## E2E Test Environment
+
+Provisioning changes (Ansible roles, `bootstrap.sh`, tofu) can be verified against a real
+throwaway cluster before merging: 1 control + 1 worker VM on the homelab node, provisioned
+by OpenTofu (`proxmox/tofu/test-env`, local state, never touches prod state) through the
+same clone + cloud-init path as prod.
+
+```bash
+./scripts/test-env.sh up                # tofu apply, generates test-inventory.ini
+cd proxmox/ansible && ansible-playbook -i test-inventory.ini playbooks/k3s.yml \
+  -e "k3s_vip=10.0.0.239 k3s_token=test-token"
+cd ../.. && ./scripts/test-env.sh verify   # all nodes joined and Ready
+./scripts/test-env.sh down              # tofu destroy
+```
+
+`.github/workflows/e2e.yml` runs the same sequence on a self-hosted runner, manual
+trigger only (`workflow_dispatch`): Renovate PRs never spin up VMs, and fork PRs cannot
+run code on the LAN runner.

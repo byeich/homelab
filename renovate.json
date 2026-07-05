@@ -42,6 +42,12 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) registryUrl=(?<registryUrl>\\S+)\\n\\s+\\w+_version: \"(?<currentValue>[^\"]+)\""
       ]
+    },
+    {
+      "fileMatch": ["^proxmox/ansible/group_vars/all/vars\\.yml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nk3s_version: \"(?<currentValue>[^\"]+)\""
+      ]
     }
   ]
 }

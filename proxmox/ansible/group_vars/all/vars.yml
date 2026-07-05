@@ -1,6 +1,7 @@
 dns_server: "10.0.0.53"
 
-# k3s cluster config — override k3s_token via vault
-k3s_version: ""
+# k3s cluster config, override k3s_token via vault
+# renovate: datasource=github-releases depName=k3s-io/k3s
+k3s_version: "v1.34.6+k3s1"
 k3s_api_port: 6443
 k3s_vip: "10.0.0.59"

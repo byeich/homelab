@@ -3,6 +3,15 @@
     path: /usr/local/bin/k3s
   register: k3s_control_bin
 
+# config must exist before first install so the initial cert includes the VIP SANs
+- name: Ensure k3s config directory exists
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Write k3s server config (TLS SANs for VIP)
   ansible.builtin.copy:
     dest: /etc/rancher/k3s/config.yaml

@@ -8,6 +8,7 @@
 *.vault
 vault.yml
 inventory.ini
+test-inventory.ini
 .vault_pass
 
 # Secrets

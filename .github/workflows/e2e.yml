@@ -1,0 +1,38 @@
+name: E2E Test Env
+
+# Manual trigger only: keeps Renovate and fork PRs off the LAN runner.
+# Runner requirements and usage: see "E2E Test Environment" in README.md
+on:
+  workflow_dispatch:
+    inputs:
+      keep_env:
+        description: "Keep test VMs after the run (debugging)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: e2e-test-env
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Spin up test env
+        run: ./scripts/test-env.sh up
+
+      - name: Run k3s playbook against test env
+        working-directory: proxmox/ansible
+        run: |
+          ansible-playbook -i test-inventory.ini playbooks/k3s.yml \
+            -e "k3s_vip=10.0.0.239 k3s_token=e2e-${{ github.run_id }}"
+
+      - name: Verify cluster (all nodes joined and Ready)
+        run: ./scripts/test-env.sh verify
+
+      - name: Tear down
+        if: ${{ always() && !inputs.keep_env }}
+        run: ./scripts/test-env.sh down

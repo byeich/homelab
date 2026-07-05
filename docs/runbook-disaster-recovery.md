@@ -131,7 +131,7 @@ kubectl get nodes   # all nodes should be Ready
 
 This is a rebuild — sealed secrets are already committed to git. Install the Helm charts directly, then restore the sealed-secrets key before letting ArgoCD sync.
 
-> **Why not `k3s_bootstrap.yml`?** The README rebuild path uses that playbook, but it runs all the way through Helm installs → sealed-secrets apply → App-of-Apps in one shot. For DR, the sealed-secrets key must be manually restored (Step 5) between Helm install and App-of-Apps, since there's no safe place to inject that step inside the playbook. Do the Helm installs manually here, restore the key in Step 5, then apply App-of-Apps in Step 6.
+> **Why not `k3s_bootstrap.yml`?** That playbook runs all the way through Helm installs → sealed-secrets apply → App-of-Apps in one shot. For DR, the sealed-secrets key must be manually restored (Step 5) between Helm install and App-of-Apps, since there's no safe place to inject that step inside the playbook. Do the Helm installs manually here, restore the key in Step 5, then apply App-of-Apps in Step 6.
 
 ```bash
 export KUBECONFIG=~/.kube/k3s-homelab.yaml
@@ -234,6 +234,12 @@ kubectl get applications -n argocd
 # Confirm Longhorn backup target is set (ArgoCD must have synced longhorn settings first)
 kubectl get settings.longhorn.io backup-target -n longhorn-system -o jsonpath='{.spec.value}'
 # Should output: nfs://10.0.0.9:/mnt/bigtank/backups/longhorn
+```
+
+Once kube-vip is synced and the VIP responds, re-run `k3s.yml` to repoint workers from
+ctrl1 to the VIP (fresh installs join via ctrl1 because the VIP doesn't exist yet):
+```bash
+cd proxmox/ansible && ./run-playbook.sh playbooks/k3s.yml
 ```
 
 ---

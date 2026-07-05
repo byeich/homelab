@@ -7,7 +7,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TF_DIR="$REPO_ROOT/proxmox/tofu/test-env"
 TF="tofu -chdir=$TF_DIR"
-VAR_FILE="../variables.auto.tfvars"
+VAR_FILE="${TEST_ENV_VAR_FILE:-../variables.auto.tfvars}"
 SSH_KEY="${K3S_SSH_KEY:-$HOME/.ssh/k3s_cluster}"
 
 tf_init() { $TF init -input=false >/dev/null; }

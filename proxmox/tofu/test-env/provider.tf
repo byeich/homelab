@@ -10,6 +10,7 @@ terraform {
     }
   }
   # local state on purpose, must never touch the B2 prod state
+  backend "local" {}
 }
 
 provider "proxmox" {

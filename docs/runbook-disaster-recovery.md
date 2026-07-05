@@ -131,7 +131,7 @@ kubectl get nodes   # all nodes should be Ready
 
 This is a rebuild — sealed secrets are already committed to git. Install the Helm charts directly, then restore the sealed-secrets key before letting ArgoCD sync.
 
-> **Why not `k3s_bootstrap.yml`?** The README rebuild path uses that playbook, but it runs all the way through Helm installs → sealed-secrets apply → App-of-Apps in one shot. For DR, the sealed-secrets key must be manually restored (Step 5) between Helm install and App-of-Apps, since there's no safe place to inject that step inside the playbook. Do the Helm installs manually here, restore the key in Step 5, then apply App-of-Apps in Step 6.
+> **Why not `k3s_bootstrap.yml`?** That playbook runs all the way through Helm installs → sealed-secrets apply → App-of-Apps in one shot. For DR, the sealed-secrets key must be manually restored (Step 5) between Helm install and App-of-Apps, since there's no safe place to inject that step inside the playbook. Do the Helm installs manually here, restore the key in Step 5, then apply App-of-Apps in Step 6.
 
 ```bash
 export KUBECONFIG=~/.kube/k3s-homelab.yaml

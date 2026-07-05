@@ -79,8 +79,8 @@ After ArgoCD syncs kube-vip, re-run `k3s.yml` to repoint workers from ctrl1 to t
 **Rebuilding an existing cluster?** Do NOT run `bootstrap.sh` blindly. The sealed-secrets
 controller private key must be restored from the Bitwarden backup BEFORE anything syncs,
 or every SealedSecret in git is unreadable. Follow
-[docs/runbook-disaster-recovery.md](docs/runbook-disaster-recovery.md), which uses
-`playbooks/k3s_bootstrap.yml` (no interactive prompts, applies sealed secrets from git).
+[docs/runbook-disaster-recovery.md](docs/runbook-disaster-recovery.md), which installs
+infra manually so the key restore fits between controller install and App-of-Apps.
 
 ## OpenTofu
 

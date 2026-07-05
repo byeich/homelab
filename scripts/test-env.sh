@@ -49,8 +49,9 @@ verify() {
   expected=$($TF output -raw node_count)
   ready=0
   for i in $(seq 1 30); do
+    # || true: transient ssh/kubectl failures must retry, not kill the loop via set -e
     ready=$(ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "debian@$control_ip" \
-      "sudo k3s kubectl get nodes --no-headers 2>/dev/null" | awk '$2=="Ready"' | wc -l | tr -d ' ')
+      "sudo k3s kubectl get nodes --no-headers 2>/dev/null" | awk '$2=="Ready"' | wc -l | tr -d ' ' || true)
     if [[ "$ready" -eq "$expected" ]]; then
       echo "VERIFY OK: $ready/$expected nodes Ready"
       ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "debian@$control_ip" "sudo k3s kubectl get nodes"

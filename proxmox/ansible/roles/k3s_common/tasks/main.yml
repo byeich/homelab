@@ -6,6 +6,11 @@
       nameserver 1.1.1.1
     mode: "0644"
 
+# first-boot unattended-upgrades can replace systemd mid-run, breaking systemctl calls
+- name: Wait for automatic upgrades to finish
+  ansible.builtin.command: systemd-run --property=After=apt-daily.service --property=After=apt-daily-upgrade.service --wait /bin/true
+  changed_when: false
+
 - name: Update apt cache and install base packages
   ansible.builtin.apt:
     update_cache: true
@@ -15,11 +20,18 @@
       - ca-certificates
       - open-iscsi
       - nfs-common
+      - qemu-guest-agent
     state: present
 
 - name: Enable and start iscsid
   ansible.builtin.systemd:
     name: iscsid
+    enabled: true
+    state: started
+
+- name: Enable and start qemu-guest-agent
+  ansible.builtin.systemd:
+    name: qemu-guest-agent
     enabled: true
     state: started
 

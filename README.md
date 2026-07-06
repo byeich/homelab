@@ -225,6 +225,7 @@ cd ../.. && ./scripts/test-env.sh verify   # all nodes joined and Ready
 ./scripts/test-env.sh down              # tofu destroy
 ```
 
-`.github/workflows/e2e.yml` runs the same sequence on a self-hosted runner, manual
-trigger only (`workflow_dispatch`): Renovate PRs never spin up VMs, and fork PRs cannot
-run code on the LAN runner.
+`.github/workflows/e2e.yml` runs the same sequence on the self-hosted runner (LXC 304,
+provisioned by `playbooks/gh_runner.yml`), manual trigger only (`workflow_dispatch`):
+Renovate PRs never spin up VMs, and fork PRs cannot run code on the LAN runner. The run
+needs ~5GB free RAM on the homelab node.

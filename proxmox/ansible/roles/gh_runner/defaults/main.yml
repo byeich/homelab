@@ -1,0 +1,11 @@
+# renovate: datasource=github-releases depName=actions/runner
+gh_runner_version: "2.335.1"
+# renovate: datasource=github-releases depName=opentofu/opentofu
+gh_runner_tofu_version: "1.12.3"
+# 2.19 is the newest core that runs on bookworm python 3.11
+# renovate: datasource=pypi depName=ansible-core
+gh_runner_ansible_core_version: "2.19.11"
+gh_runner_repo: "byeich/homelab"
+gh_runner_user: "runner"
+gh_runner_home: "/home/runner"
+gh_runner_labels: "homelab"

@@ -13,7 +13,8 @@ locals {
   }
 
   containers = {
-    pihole = { vm_id = 303, memory = 512, cores = 1, ip = "10.0.0.53/24" }
+    pihole    = { vm_id = 303, memory = 512, cores = 1, ip = "10.0.0.53/24" }
+    gh-runner = { vm_id = 304, memory = 1024, cores = 2, ip = "10.0.0.55/24", tags = ["ci"] }
   }
 
   # K3s VMs
@@ -37,6 +38,7 @@ resource "proxmox_virtual_environment_container" "svc" {
   for_each  = local.containers
   node_name = local.defaults.node
   vm_id     = each.value.vm_id
+  tags      = concat(["opentofu", "debian"], lookup(each.value, "tags", []))
 
   operating_system {
     template_file_id = local.defaults.tmpl_id
@@ -175,6 +177,7 @@ locals {
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/../ansible/inventory.tftpl", {
     pihole_host       = split("/", local.containers["pihole"].ip)[0]
+    gh_runner_host    = split("/", local.containers["gh-runner"].ip)[0]
     k3s_control_hosts = local.k3s_control_hosts
     k3s_worker_hosts  = local.k3s_worker_hosts
   })

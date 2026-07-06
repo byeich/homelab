@@ -1,0 +1,5 @@
+- name: GitHub Actions runner for e2e workflow
+  hosts: gh_runner
+  become: true
+  roles:
+    - gh_runner

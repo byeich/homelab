@@ -1,0 +1,156 @@
+- name: Install packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - git
+      - jq
+      - tar
+      - unzip
+      - acl
+      - python3
+      - python3-venv
+    state: present
+    update_cache: true
+
+# apt ansible is core 2.14, too old for the pinned collections
+- name: Remove apt ansible
+  ansible.builtin.apt:
+    name:
+      - ansible
+      - ansible-core
+    state: absent
+
+- name: Install ansible-core in venv
+  ansible.builtin.pip:
+    name: "ansible-core=={{ gh_runner_ansible_core_version }}"
+    virtualenv: /opt/ansible
+    virtualenv_command: python3 -m venv
+
+- name: Link ansible binaries
+  ansible.builtin.file:
+    src: "/opt/ansible/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    state: link
+  loop:
+    - ansible
+    - ansible-playbook
+    - ansible-galaxy
+
+- name: Check tofu version
+  ansible.builtin.command: /usr/local/bin/tofu --version
+  register: gh_runner_tofu_current
+  failed_when: false
+  changed_when: false
+
+- name: Install tofu binary
+  ansible.builtin.unarchive:
+    src: "https://github.com/opentofu/opentofu/releases/download/v{{ gh_runner_tofu_version }}/tofu_{{ gh_runner_tofu_version }}_linux_amd64.zip"
+    dest: /usr/local/bin
+    remote_src: true
+    include: [tofu]
+  when: ("v" ~ gh_runner_tofu_version) not in gh_runner_tofu_current.stdout | default("")
+
+- name: Create runner user
+  ansible.builtin.user:
+    name: "{{ gh_runner_user }}"
+    home: "{{ gh_runner_home }}"
+    shell: /bin/bash
+
+- name: Create runner dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ gh_runner_user }}"
+    group: "{{ gh_runner_user }}"
+    mode: "0700"
+  loop:
+    - "{{ gh_runner_home }}/.homelab"
+    - "{{ gh_runner_home }}/.homelab/plugin-cache"
+    - "{{ gh_runner_home }}/.ssh"
+    - "{{ gh_runner_home }}/actions-runner"
+
+# secrets live outside the workspace, actions/checkout cleans it every run
+- name: Copy secrets from controller
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ gh_runner_user }}"
+    group: "{{ gh_runner_user }}"
+    mode: "0600"
+  loop:
+    - src: "{{ playbook_dir }}/../../tofu/variables.auto.tfvars"
+      dest: "{{ gh_runner_home }}/.homelab/variables.auto.tfvars"
+    - src: "{{ playbook_dir }}/../.vault_pass"
+      dest: "{{ gh_runner_home }}/.homelab/.vault_pass"
+    - src: "~/.ssh/k3s_cluster"
+      dest: "{{ gh_runner_home }}/.ssh/k3s_cluster"
+    - src: "~/.ssh/k3s_cluster.pub"
+      dest: "{{ gh_runner_home }}/.ssh/k3s_cluster.pub"
+
+- name: Copy collection requirements
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../requirements.yml"
+    dest: "{{ gh_runner_home }}/.homelab/requirements.yml"
+    owner: "{{ gh_runner_user }}"
+    group: "{{ gh_runner_user }}"
+    mode: "0644"
+
+- name: Install ansible collections for runner user
+  ansible.builtin.command: ansible-galaxy collection install -r {{ gh_runner_home }}/.homelab/requirements.yml
+  become: true
+  become_user: "{{ gh_runner_user }}"
+  args:
+    creates: "{{ gh_runner_home }}/.ansible/collections/ansible_collections/community"
+
+- name: Download actions runner
+  ansible.builtin.unarchive:
+    src: "https://github.com/actions/runner/releases/download/v{{ gh_runner_version }}/actions-runner-linux-x64-{{ gh_runner_version }}.tar.gz"
+    dest: "{{ gh_runner_home }}/actions-runner"
+    remote_src: true
+    owner: "{{ gh_runner_user }}"
+    group: "{{ gh_runner_user }}"
+    creates: "{{ gh_runner_home }}/actions-runner/config.sh"
+
+- name: Install runner dependencies
+  ansible.builtin.command: ./bin/installdependencies.sh
+  args:
+    chdir: "{{ gh_runner_home }}/actions-runner"
+    creates: /usr/lib/x86_64-linux-gnu/libicu*
+
+- name: Check if runner is registered
+  ansible.builtin.stat:
+    path: "{{ gh_runner_home }}/actions-runner/.runner"
+  register: gh_runner_registered
+
+- name: Get registration token
+  ansible.builtin.command: gh api -X POST repos/{{ gh_runner_repo }}/actions/runners/registration-token --jq .token
+  delegate_to: localhost
+  become: false
+  register: gh_runner_token
+  changed_when: false
+  when: not gh_runner_registered.stat.exists
+
+- name: Register runner
+  ansible.builtin.command: >
+    ./config.sh --url https://github.com/{{ gh_runner_repo }}
+    --token {{ gh_runner_token.stdout }}
+    --name gh-runner --labels {{ gh_runner_labels }}
+    --unattended --replace
+  args:
+    chdir: "{{ gh_runner_home }}/actions-runner"
+  become: true
+  become_user: "{{ gh_runner_user }}"
+  when: not gh_runner_registered.stat.exists
+  changed_when: true
+
+- name: Install runner service
+  ansible.builtin.command: ./svc.sh install {{ gh_runner_user }}
+  args:
+    chdir: "{{ gh_runner_home }}/actions-runner"
+    creates: /etc/systemd/system/actions.runner.*.service
+
+- name: Start runner service
+  ansible.builtin.command: ./svc.sh start
+  args:
+    chdir: "{{ gh_runner_home }}/actions-runner"
+  changed_when: true

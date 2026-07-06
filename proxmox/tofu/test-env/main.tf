@@ -86,6 +86,9 @@ resource "proxmox_virtual_environment_vm" "k3s_test_vms" {
   }
 
   started = true
+
+  # force stop, teardown must not depend on guest agent state
+  stop_on_destroy = true
 }
 
 locals {

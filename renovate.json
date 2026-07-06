@@ -48,6 +48,13 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nk3s_version: \"(?<currentValue>[^\"]+)\""
       ]
+    },
+    {
+      "fileMatch": ["^proxmox/ansible/roles/gh_runner/defaults/main\\.yml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\w+: \"(?<currentValue>[^\"]+)\""
+      ],
+      "extractVersionTemplate": "^v?(?<version>.*)$"
     }
   ]
 }

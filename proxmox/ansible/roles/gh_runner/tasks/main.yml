@@ -8,9 +8,39 @@
       - unzip
       - acl
       - python3
-      - ansible
+      - python3-venv
     state: present
     update_cache: true
+
+# apt ansible is core 2.14, too old for the pinned collections
+- name: Remove apt ansible
+  ansible.builtin.apt:
+    name:
+      - ansible
+      - ansible-core
+    state: absent
+
+- name: Install ansible-core in venv
+  ansible.builtin.pip:
+    name: "ansible-core=={{ gh_runner_ansible_core_version }}"
+    virtualenv: /opt/ansible
+    virtualenv_command: python3 -m venv
+
+- name: Link ansible binaries
+  ansible.builtin.file:
+    src: "/opt/ansible/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    state: link
+  loop:
+    - ansible
+    - ansible-playbook
+    - ansible-galaxy
+
+- name: Check tofu version
+  ansible.builtin.command: /usr/local/bin/tofu --version
+  register: gh_runner_tofu_current
+  failed_when: false
+  changed_when: false
 
 - name: Install tofu binary
   ansible.builtin.unarchive:
@@ -18,7 +48,7 @@
     dest: /usr/local/bin
     remote_src: true
     include: [tofu]
-    creates: /usr/local/bin/tofu
+  when: ("v" ~ gh_runner_tofu_version) not in gh_runner_tofu_current.stdout | default("")
 
 - name: Create runner user
   ansible.builtin.user:
@@ -124,4 +154,3 @@
   args:
     chdir: "{{ gh_runner_home }}/actions-runner"
   changed_when: true
-  failed_when: false

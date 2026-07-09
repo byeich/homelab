@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: azure/setup-helm@v5
         with:
-          version: "v4.2.2"
+          version: "v4.2.3"
       - name: Render charts with repo values
         run: |
           set -euo pipefail
